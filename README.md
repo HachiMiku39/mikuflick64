@@ -1,5 +1,1015 @@
 # mikuflick64
 MikuFlick02 renew version for iOS26+ devices.
+
+# MikuFlick 64-bit Modernization / iPad & iPhone Duo Adaptation Spec
+
+> 用途：交给 Codex 继续实现与拆任务。  
+> 目标：在尽量保留原版 MikuFlick 手感与视觉身份的前提下，完成现代 iOS 64 位化，并针对 iPad 与未来可折叠 iPhone Duo 设计真正的大屏 UI。  
+> 本文汇总 2026-10-04 讨论内容，包含设备逻辑、UI 架构、MV/歌词布局、输入区、大屏 HUD、Gauge/Combo 重定义、BTL 规则、折叠状态连续性、测试策略与历史机制考据。
+
+---
+
+## 1. 项目目标
+
+### 1.1 核心目标
+
+1. 保留普通不可折叠 iPhone 上的经典 MikuFlick 竖屏体验。
+2. 针对 iPad 与未来 iPhone Duo 展开态提供新的大屏 UI。
+3. 不让普通 iPhone 因为横屏或屏幕变宽而误触发新 UI。
+4. iPad 竖屏继续使用经典 iPhone 风格布局，整体居中。
+5. iPad 横屏与 iPhone Duo 展开态使用专门的大屏布局。
+6. 将 MV、歌词、Gameplay、Flick 输入区、Score、Gauge 等模块彻底解耦，便于后续适配折叠状态与不同窗口尺寸。
+7. 折叠/展开、旋转、iPad 窗口大小改变时，保持播放、谱面、Combo、Gauge、歌词位置等状态连续，不重启歌曲。
+8. 项目作为开源社区中较早一批针对未来 iPhone Duo 做原生适配的示范性项目。
+
+---
+
+## 2. 设计原则
+
+### 2.1 普通 iPhone 保留经典 UI
+
+普通不可折叠 iPhone：
+
+- 不支持新的 Duo / iPad 大屏 UI。
+- 即使是 Pro Max，也继续使用经典 iPhone UI。
+- 即使横屏，也不能因为宽度达到阈值而自动进入 Duo UI。
+- 经典 UI 保留原版纵向信息流：
+  - MV
+  - 歌词 / Note
+  - Next input
+  - Combo / Score
+  - Flick 输入区
+
+### 2.2 Duo / iPad 才有资格进入新 UI
+
+大屏新 UI 的“资格”和“当前布局”要分两层处理：
+
+```text
+设备类别决定是否有资格使用新 UI
++
+当前姿态 / 窗口尺寸决定使用哪一种大屏布局
+```
+
+普通 iPhone 永远不允许进入 `expandedDualPane`。
+
+### 2.3 大屏不是把 iPhone UI 吹大
+
+禁止：
+
+```text
+iPhone UI × 1.8
+```
+
+正确思路：
+
+```text
+大屏 = 重新组织空间
+```
+
+例如：
+
+- MV 和歌词分栏
+- Score / Gauge 放入视频黑边
+- Flick 区保持合理物理尺寸
+- 输入区允许用户移动 / 缩放
+- iPad / Duo 额外空间用于内容，而不是让按键变成“餐盘”
+
+### 2.4 Flick 输入区是“软件键盘”，不是可无限伸缩的内容
+
+内部设计原则：
+
+> Flick controls behave like a software keyboard, not scalable content.
+
+即：
+
+- 可以整体移动
+- 可以整体等比例缩放
+- 不允许横向拉伸
+- 不允许单独改变某个键大小
+- 不允许破坏键之间相对位置
+- 不随着大屏宽度无限放大
+
+---
+
+## 3. 设备与布局模式
+
+建议定义：
+
+```swift
+enum DeviceFamily {
+    case iPhone
+    case iPhoneDuo
+    case iPad
+}
+```
+
+布局模式：
+
+```swift
+enum MikuLayoutMode {
+    case phoneClassic
+    case duoExpanded
+    case tabletPortraitClassic
+    case tabletWide
+}
+```
+
+### 3.1 设备状态映射
+
+| 设备 / 状态 | UI |
+|---|---|
+| 普通 iPhone | Classic iPhone UI |
+| 普通 iPhone Pro Max | Classic iPhone UI |
+| 普通 iPhone 横屏 | Classic iPhone UI |
+| iPhone Duo 折叠 | Classic iPhone UI |
+| iPhone Duo 展开 | Duo Expanded UI |
+| iPad 竖屏 | Classic iPhone UI，居中 |
+| iPad 横屏 | Large / Expanded UI |
+| iPad 窄窗口 | 可退回较紧凑布局，但仍属于 iPad 分支 |
+
+### 3.2 推荐 Resolver
+
+```swift
+func resolveLayout(
+    family: DeviceFamily,
+    isExpanded: Bool,
+    windowSize: CGSize
+) -> MikuLayoutMode {
+    switch family {
+    case .iPhone:
+        return .phoneClassic
+
+    case .iPhoneDuo:
+        return isExpanded ? .duoExpanded : .phoneClassic
+
+    case .iPad:
+        if windowSize.width > windowSize.height {
+            return .tabletWide
+        } else {
+            return .tabletPortraitClassic
+        }
+    }
+}
+```
+
+### 3.3 未来 Duo API 接入原则
+
+不要写死：
+
+```swift
+if deviceModel == "iPhone XX,YY" { ... }
+```
+
+应该把官方折叠状态 API 隔离在一层：
+
+```text
+DeviceContext
+    ↓
+Posture / Fold State
+    ↓
+LayoutResolver
+    ↓
+Presentation
+```
+
+未来 Apple SDK 出来以后，只替换 `DeviceContext` / `Posture` 检测，不重构 Gameplay。
+
+---
+
+## 4. iPad 竖屏
+
+iPad 竖屏不重新设计大屏 UI。
+
+使用：
+
+> Classic iPhone UI，原生实现，居中显示
+
+注意：
+
+- 不是系统 iPhone Compatibility Mode。
+- App 本身仍然是原生 iPad App。
+- Classic Canvas 自己控制逻辑尺寸。
+- 推荐接近现代 Pro Max 逻辑宽度，而不是 320×480 / 320×568 时代的兼容尺寸。
+- 背景可以延展到整个 iPad。
+- 游戏主体保持中央竖屏构图。
+
+示意：
+
+```text
+┌────────────────────────────┐
+│                            │
+│      ┌──────────────┐      │
+│      │      MV      │      │
+│      │   视频字幕   │      │
+│      │──────────────│      │
+│      │ Note / Kana  │      │
+│      │              │      │
+│      │ Flick Area   │      │
+│      └──────────────┘      │
+│                            │
+└────────────────────────────┘
+```
+
+---
+
+## 5. iPhone Duo 展开 / iPad 横屏
+
+### 5.1 总原则
+
+进入新的大屏布局：
+
+```text
+MV / Gameplay 内容
++
+独立歌词
++
+独立 HUD
++
+可调整 Flick 输入区
+```
+
+### 5.2 MV Playback
+
+普通 iPhone / Duo 折叠：
+
+- 歌词可以继续叠在 MV 上。
+- 保留经典手机版显示方式。
+
+Duo 展开 / iPad 横屏：
+
+> 不在视频上显示歌词。
+
+采用类似 Apple Music 的双栏思路：
+
+```text
+┌────────────────────┬────────────────────┐
+│                    │      上一句        │
+│                    │                    │
+│        MV          │      当前歌词      │
+│                    │                    │
+│                    │      下一句        │
+│                    │                    │
+└────────────────────┴────────────────────┘
+```
+
+要求：
+
+- 左侧 MV 保持原始比例。
+- 右侧歌词独立滚动。
+- 当前行明显高亮。
+- 上下句弱化。
+- 自动跟随播放。
+- 未来可选支持点击歌词跳转。
+- 保留较大的左右 padding。
+- 不做“文档式密集歌词列表”。
+
+可选扩展：
+
+- 沉浸播放模式
+- 跟唱模式
+- 罗马音 / 翻译
+- 歌词跳转
+
+---
+
+## 6. Gameplay 大屏布局
+
+建议：
+
+```text
+┌────────────────────┬────────────────────┐
+│                    │ SCORE        COMBO │
+│                    │                    │
+│        MV          │ Note / Lyrics      │
+│                    │                    │
+│                    │ Next input         │
+│                    │                    │
+│                    │ ┌──────────────┐   │
+│                    │ │ Flick Area   │   │
+│                    │ └──────────────┘   │
+└────────────────────┴────────────────────┘
+```
+
+或者中央保留更强的游戏画布，再将 MV / HUD / 输入区分配到左右空间。
+
+原则：
+
+- Gameplay engine 不知道当前是 iPhone、iPad 还是 Duo。
+- 谱面只输出 timing / kana / direction。
+- UI 决定这些元素如何排布。
+
+---
+
+## 7. 输入区设置模式
+
+仅在：
+
+- iPad
+- iPhone Duo 展开态
+
+提供。
+
+普通 iPhone与 Duo 折叠态不开放。
+
+### 7.1 入口
+
+推荐：
+
+```text
+暂停
+↓
+输入区域设置
+```
+
+正式游戏中不允许误拖。
+
+Practice 模式可考虑允许实时微调。
+
+### 7.2 可调整项目
+
+允许：
+
+- 整体移动
+- 整体等比例缩放
+- 左 / 中 / 右预设
+- 上下位置调整
+- 重置
+- 测试模式
+
+禁止：
+
+- 单独调整某个键
+- 横向拉伸
+- 改变九宫格比例
+- 改变键间距逻辑
+
+### 7.3 建议预设
+
+- Left-handed
+- Centered
+- Right-handed
+- Compact
+- Default
+
+### 7.4 测试模式
+
+在设置模式中允许玩家直接 Flick，显示：
+
+```text
+Detected:
+あ → ↑ → う
+
+Swipe distance: 42 pt
+```
+
+用于即时确认手感。
+
+### 7.5 设置按设备状态分别保存
+
+例如：
+
+```text
+iPad Portrait
+iPad Landscape
+Duo Expanded
+```
+
+分别存储。
+
+iPad 竖屏默认 Classic UI 居中，可以不强制用户设置输入区。
+
+---
+
+## 8. 华为折叠屏参考结论
+
+研究华为阔折叠设备和记事本交互后，采纳以下原则：
+
+### 8.1 展开不是重新启动另一套 App
+
+展开 / 折叠是同一页面发生布局变化。
+
+必须保持：
+
+- MV 当前时间
+- 音频状态
+- 歌词位置
+- 当前谱面时间
+- Combo
+- Gauge
+- 当前输入状态
+- 暂停状态
+
+### 8.2 内容变大，输入器保持人体尺度
+
+华为大屏键盘会变成相对固定尺寸的输入岛，而不是铺满整个屏幕。
+
+MikuFlick 输入区同理：
+
+- 不随屏幕宽度无限增长
+- 大屏增加内容空间
+- 输入区保持合理大小
+- 允许左右偏置 / 居中
+
+### 8.3 可借鉴，但不照抄
+
+只借鉴：
+
+- Fold / Unfold 状态连续性
+- 大屏信息架构
+- 输入组件的尺度策略
+
+不要提前照抄：
+
+- 华为具体尺寸
+- 动画曲线
+- 分屏比例
+- 悬停角度逻辑
+
+这些要等未来 Apple Duo 真机 / SDK 再定。
+
+---
+
+## 9. MV 黑边 HUD 设计
+
+如果 MV 原始比例在现代设备上自然产生左右黑边，则把黑边作为 HUD 空间。
+
+核心原则：
+
+> 黑边是功能区，不是浪费空间。
+
+### 9.1 默认布局
+
+```text
+┌────────────────────────────────┐
+│ Gauge │          MV        │ SCORE │
+│       │                    │       │
+│       │                    │       │
+│       │                    │       │
+└────────────────────────────────┘
+```
+
+建议：
+
+- 左黑边：Microphone Gauge
+- 右黑边：Score
+- MV 不被 HUD 遮挡
+- Combo / Kana / Flick 区放在下方
+
+### 9.2 BTL
+
+BTL 无 Gauge：
+
+- 左黑边不显示 Gauge
+- 可以留白
+- 不建议强塞其他信息
+- 右侧 Score 仍保留
+
+---
+
+## 10. 原版机制考据结论
+
+### 10.1 名称
+
+原版更准确的叫法：
+
+> マイクゲージ / Microphone Gauge
+
+不建议再称为 Fever Gauge。
+
+### 10.2 SEGA 官方视频观察
+
+见后文逆向结果处理，和原版游戏保持一致
+
+#### MikuFlick 无印
+
+- Gauge 初始约 50%
+- Gauge 满格没有额外特效
+- AP 演示中约 67 次 Cool 到满
+- 官方演示只展示了高水平连续 Cool 情况
+
+#### MikuFlick /02
+
+- Gauge 初始约 50%
+- Gauge 满格没有额外特效
+- AP 演示中约 52 次 Cool 到满
+- 连续 20 次 Cool 时，轨道出现彩虹闪光
+- Gauge 满格与彩虹轨道不是同一机制
+
+### 10.3 BTL
+
+- BTL 没有 Microphone Gauge
+- 不使用普通生命值归零失败逻辑
+- UI 层与逻辑层都要真正关闭 Gauge 系统
+
+---
+
+## 11. 新版 Gauge 机制
+
+项目决定不机械复刻原版回血数值，重新定义一套更清晰的整数制。
+
+### 11.1 数值范围
+
+```text
+初始值：128
+最小值：0
+最大值：256
+```
+
+### 11.2 判定增减
+
+```text
+见后文逆向结果处理，和原版游戏保持一致
+```
+
+> 注意：最终必须确认新版到底采用 5 档还是 6 档判定。
+> 如果仍使用原版五档体系，需要重新映射 Good / Safe。
+
+### 11.3 失败条件
+
+```text
+Gauge == 0
+另见后文逆向结果处理，和原版游戏保持一致
+```
+
+### 11.4 满格
+
+```text
+Gauge == 256
+见后文逆向结果处理，和原版游戏保持一致
+
+---
+
+## 12. Gauge 视觉设计
+
+见后文逆向结果处理，和原版游戏保持一致
+采用连续渐变色。
+
+建议表达危险程度：
+
+```text
+0              64            128            192            256
+│──────────────|──────────────│──────────────│──────────────│
+危险            警告            正常            明亮 / Miku 色
+```
+
+原则：
+
+- 不做硬切分段。
+- Gauge 变化时平滑插值。
+- 低值区域明显危险。
+- 高值区域更偏 Miku 青绿 / 亮青。
+- 满格保持稳定，不闪烁。
+
+---
+
+## 13. Combo 与彩虹视觉系统
+
+与 Gauge 完全独立。
+
+### 13.1 Combo 规则
+
+采用 Project DIVA 风格：
+
+```text
+只有 Cool 和 Fine 续 Combo
+其他判定断 Combo
+```
+
+### 13.2 Rainbow Level
+
+见后文逆向结果处理，和原版游戏保持一致
+
+### 13.3 Fine 的处理
+
+见后文逆向结果处理，和原版游戏保持一致
+
+### 13.4 断 Combo
+
+见后文逆向结果处理，和原版游戏保持一致
+
+### 13.5 建议实现
+
+见后文逆向结果处理，和原版游戏保持一致
+
+### 13.6 彩虹效果风格
+
+见后文逆向结果处理，和原版游戏保持一致
+
+---
+
+## 14. Gameplay Engine 与 UI 解耦
+
+建议分层：
+
+```text
+Chart Engine
+    ↓
+Timing / Kana / Flick Direction
+    ↓
+Judgment Engine
+    ↓
+Combo / Gauge / Score State
+    ↓
+Presentation Layer
+    ↓
+Classic / Duo / iPad UI
+```
+
+Gameplay Engine 不应该知道：
+
+- 当前是不是 iPad
+- 当前是不是 Duo
+- 当前是不是横屏
+- MV 在左还是上
+- 歌词是 overlay 还是 side panel
+
+---
+
+## 15. Fold / Rotate / Resize 连续性
+
+切换布局时，必须保持：
+
+```text
+AVPlayer currentTime
+Audio clock
+Chart position
+Current note index
+Combo
+Cool streak
+Rainbow level
+Gauge
+Score
+Lyrics timeline index
+Pause state
+```
+
+禁止：
+
+- 重新加载歌曲
+- 重新创建谱面
+- 重置 Combo
+- 重置 Gauge
+- 重置 Score
+- 重新从 0 开始播放 MV
+
+推荐：
+
+```text
+State Object 保持
+View 只换 Presentation
+```
+
+---
+
+## 16. Classic / Expanded 歌词策略
+
+### Classic Phone
+
+```text
+MV
++
+视频内歌词 Overlay
+```
+
+### Duo Expanded / iPad Wide
+
+```text
+MV
+|
+Lyrics Side Panel
+```
+
+建议属性：
+
+```swift
+enum LyricsPresentation {
+    case videoOverlay
+    case sidePanel
+}
+```
+
+映射：
+
+```swift
+switch layoutMode {
+case .phoneClassic, .tabletPortraitClassic:
+    lyricsPresentation = .videoOverlay
+
+case .duoExpanded, .tabletWide:
+    lyricsPresentation = .sidePanel
+}
+```
+
+---
+
+## 17. iPhone-only 兼容模式问题
+
+旧 iPhone-only App 在 iPad 上可能进入古老的兼容画布。
+
+现代化目标：
+
+- 不依赖系统旧式 Compatibility Mode。
+- 使用原生 iPad target / Universal 结构。
+- Classic iPhone UI 由 App 自己实现。
+- 不让系统把 App 固定在 320×480 / 320×568 的老画布再整体放大。
+
+需要检查旧工程 / IPA：
+
+- `Info.plist`
+- `UIDeviceFamily`
+- `UILaunchImages`
+- 旧 `Default.png`
+- `UILaunchStoryboardName`
+- Launch Screen
+
+目标：
+
+- 使用现代 Launch Screen
+- 不让系统误判为老 iPhone 尺寸
+- iPad 竖屏由 App 自己居中 Classic Canvas
+
+---
+
+## 18. 输入判定注意事项
+
+见后文逆向结果处理，和原版游戏保持一致
+
+---
+
+## 19. 推荐模块划分
+
+```text
+MikuFlickCore
+├─ AudioClock
+├─ ChartEngine
+├─ JudgmentEngine
+├─ ScoreEngine
+├─ ComboEngine
+├─ GaugeEngine
+├─ LyricsTimeline
+└─ GameState
+
+MikuFlickUI
+├─ ClassicPhoneLayout
+├─ DuoExpandedLayout
+├─ TabletPortraitClassicLayout
+├─ TabletWideLayout
+├─ DualPaneMVPlayer
+├─ LyricsPanel
+├─ BoundedFlickKeyboard
+├─ GameplayHUD
+└─ InputLayoutEditor
+
+DeviceLayer
+├─ DeviceFamilyResolver
+├─ FoldStateProvider
+├─ WindowMetricsProvider
+└─ LayoutResolver
+```
+
+---
+
+## 20. 测试矩阵
+
+### 20.1 设备 / 布局
+
+- 普通 iPhone 竖屏
+- 普通 iPhone Pro Max
+- 普通 iPhone 横屏
+- Duo 折叠
+- Duo 展开
+- iPad 竖屏
+- iPad 横屏
+- iPad 小窗口
+- iPad 大窗口
+
+### 20.2 状态切换
+
+在以下时机执行折叠 / 展开 / 旋转 / resize：
+
+- MV 刚开始
+- 歌词滚动中
+- BTL 模式
+- 暂停状态
+- 恢复状态
+
+检查：
+
+- 音画同步
+- 歌词位置
+- Score
+- Combo
+- Cool streak
+- Rainbow Level
+- Gauge
+- 当前 Note
+- 输入区位置
+- UI 无跳动 / 黑屏 / 重载
+
+### 20.3 Gameplay
+
+重点验证：
+见后文逆向结果处理，和原版游戏保持一致
+
+---
+
+## 21. 开发优先级
+
+### P0
+
+- 64 位运行
+- 现代 Launch Screen
+- Classic iPhone UI
+- iPad 原生 target
+- 基础 Flick 输入
+- Audio / Chart / Judgment 解耦
+- Gauge / Combo / Score State
+
+### P1
+
+- iPad 竖屏 Classic 居中
+- iPad 横屏 Dual-pane
+- Duo Expanded 抽象布局
+- MV 左 / 歌词右
+- 输入区最大尺寸限制
+- 输入区拖动 / 缩放
+  
+
+### P2
+
+- 真机折叠状态 API
+- Fold / Unfold 无缝 morph
+- 歌词点击跳转
+- Practice 输入测试模式
+- 左右手预设
+- 高级视觉效果
+
+---
+
+## 22. 非目标 / 暂不做
+
+- 普通不可折叠 iPhone 使用新 UI
+- 因为 Pro Max 更宽就进入 Duo UI
+- 把 iPad 横屏做成简单放大版 iPhone
+- 将 Flick 区无限拉伸
+- Gauge 满格触发 Fever
+- Gauge 与 Rainbow Combo FX 混为一个系统
+- BTL 伪装隐藏 Gauge 但后台仍跑生命值
+- 折叠 / 展开时重启歌曲
+- 为了“现代化”改变谱面本身的 timing 语义
+
+---
+
+## 23. 最终产品哲学
+
+### 普通 iPhone
+
+> 保留 MikuFlick 原版竖屏身份。
+
+### iPad 竖屏
+
+> Classic iPhone UI，原生实现，居中显示。
+
+### iPad 横屏 / iPhone Duo 展开
+
+> 真正的大屏 UI，而不是放大版手机 UI。
+
+### MV
+
+> 小屏歌词可以叠在视频上，大屏改为左 MV / 右歌词。
+
+### Gameplay
+
+> 内容可以扩展，输入区保持人体尺度。
+
+### 状态
+
+> Fold / Unfold 只改变 Presentation，不改变 Game State。
+
+### Gauge
+
+> 见后文逆向结果处理，和原版游戏保持一致
+
+### Combo
+
+> 见后文逆向结果处理，和原版游戏保持一致
+
+---
+
+## 24. Codex 开发提示
+
+建议 Codex 开始前先做以下步骤：
+
+1. 读取现有工程结构。
+2. 找到当前：
+   - Audio playback
+   - Chart parsing
+   - Flick handling
+   - Score / Combo
+   - MV view
+   - Lyrics rendering
+3. 不要直接在现有 View Controller 里堆设备判断。
+4. 先建立：
+   - `GameState`
+   - `DeviceContext`
+   - `LayoutResolver`
+   - `LyricsPresentation`
+   - `GaugeEngine`
+   - `ComboEngine`
+5. 再逐步迁移旧 UI。
+6. 所有 Fold / Rotate / Resize 测试都要求：
+   - 不重建 GameState
+   - 不重启 AVPlayer
+7. 每完成一个模块就加入自动测试或最小可复现测试场景。
+
+---
+
+## 25. 建议的第一批任务拆分
+
+### Task A: Device / Layout abstraction
+
+实现：
+
+- `DeviceFamily`
+- `MikuLayoutMode`
+- `LayoutResolver`
+- iPhone / iPad 分支
+- Duo 占位接口
+
+### Task B: Classic Canvas
+
+实现：
+
+- 普通 iPhone
+- iPad 竖屏居中
+- 同一套 Classic UI 组件
+
+### Task C: Dual-pane MV Player
+
+实现：
+
+- 左 MV
+- 右歌词
+- 当前句高亮
+- 自动滚动
+- iPad 横屏启用
+- Duo Expanded 占位启用
+
+### Task D: Input Layout Editor
+
+实现：
+
+- 拖动
+- 等比缩放
+- Left / Center / Right
+- Reset
+- Preview / Test
+
+### Task E: Gauge Engine
+
+实现：
+
+```text
+见后文逆向结果处理，和原版游戏保持一致
+```
+
+### Task F: Combo / Rainbow Engine
+
+实现：
+
+```text
+见后文逆向结果处理，和原版游戏保持一致
+```
+
+### Task G: State continuity
+
+验证：
+
+- rotate
+- iPad resize
+- simulated fold/unfold
+
+过程中：
+
+- AVPlayer 不重启
+- GameState 不重置
+- HUD 状态不丢失
+
+---
+
+## 26. 备注
+
+
+### 关于 Duo
+
+在 Apple 正式公开 iPhone Duo 硬件 / SDK 前：
+
+- 不猜具体机型 identifier
+- 不硬编码实际折叠尺寸
+- 用抽象 `FoldStateProvider`
+- 用 iPad / 自定义宽窗口 / 其他折叠设备作为 UX 参考
+- 真机发布后只补最后一层官方设备状态检测
+
 # MikuFlick2 1.1.5 游戏机制逆向笔记
 
 > 基于 `MikuFlick2` iOS 版 1.1.5（ARMv7）在 Ghidra 中的静态分析结果整理。  
