@@ -383,6 +383,121 @@ Gameplay 原则：
 - 连续滚动背景 / MV 可以跨区域显示，但关键交互应服从 Safe Area
 - partially folded 时只改变 Presentation，不重建 Gameplay State
 
+### Seated / Desk Mode
+
+iPhone Duo 在坐姿 / 桌面态（Seated）下可以采用更明确的上下屏分工。交互思路可以参考 Nintendo 3DS 这类上下屏设备，但不复制其具体 UI。
+
+核心原则：
+
+- Upper Display 主要承载观看信息
+- Lower Display 主要承载触控交互
+- hinge 视为明确的布局分界
+- 关键触控目标不跨 hinge
+- 状态变化只重排 Presentation，不改变 Gameplay State
+
+#### Gameplay
+
+推荐布局：
+
+```text
+┌──────────────────────┐  upper
+│ MV                   │
+│ SCORE / COMBO        │
+│ Lyrics / Note info   │
+├──────────────────────┤  hinge
+│                      │
+│    Flick Keyboard    │
+└──────────────────────┘  lower
+```
+
+职责划分：
+
+**Upper Display**
+
+- MV
+- Score
+- Combo
+- Lyrics / Note information
+- 非必要触控 HUD
+
+**Lower Display**
+
+- 9-key Flick Keyboard
+- 与 Flick 直接相关的触控反馈
+- 必要时的 Pause / gameplay controls
+
+这样可以把观看和操作自然分离，减少手指遮挡 MV / Lyrics，也避免为了适配大屏而把 Flick Keyboard 无限放大。
+
+#### MV Mode
+
+推荐布局：
+
+```text
+┌──────────────────────┐  upper
+│ MV                   │
+│                      │
+│                      │
+├──────────────────────┤  hinge
+│                      │
+│       Lyrics         │
+└──────────────────────┘  lower
+```
+
+在纯 MV 播放时：
+
+- Upper Display 专注视频
+- Lower Display 专注同步歌词
+- 当前歌词可以高亮，上下句弱化
+- 不需要把歌词继续叠在 MV 上
+- 如果用户将设备恢复到 flat / fully-open 状态，应平滑返回 Wide MV + Lyrics 布局
+
+#### Interaction Model
+
+Seated 模式应被视为同一个 Gameplay / MV Scene 的另一种 Presentation，而不是启动另一套页面。
+
+```text
+Same GameState / MediaState
+        +
+Seated Geometry
+        ↓
+Upper / Lower Presentation
+```
+
+切入或退出 Seated 时必须保持：
+
+- audio / video current time
+- chart position
+- current Note
+- Combo
+- Gauge
+- Score
+- Crimax / Interlude state
+- lyric timeline
+- pause state
+
+不允许：
+
+- 重新开歌
+- 重新加载谱面
+- 重置 Flick 状态
+- 因为上下屏切换重新计算歌曲时间
+
+#### Implementation Note
+
+不要把 Seated 写成“设备型号 + 固定角度”的硬编码模式。
+
+建议由平台层提供：
+
+```swift
+enum DuoPresentationMode {
+    case outerClassic
+    case innerWide
+    case seated
+}
+```
+
+具体进入 `.seated` 的依据应来自 Apple 提供的 Duo pose / scene geometry / reserved-region 信息，再由 `LayoutResolver` 选择上下屏布局。
+
 ### Inner Display 的 Orientation 注意事项
 
 Apple 明确指出：**Inner Display 不应依赖 supported interface orientations 来决定布局。**
