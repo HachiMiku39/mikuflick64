@@ -315,29 +315,7 @@ MV | Lyrics / Gameplay / HUD
 
 Apple 明确建议不要只把外屏 UI 横向吹大，而是利用 regular-width 空间显示更多内容，例如 split view / two-column layout。
 
-坐姿 / 桌面态（Seated）游戏模式示意：（可以参考Nintendo 3DS的交互）
 
-```text
-
-┌──────────────────────┐upper
-│MV                    │                      
-│ SCORE / COMBO        │  
-│  Lyrics / Note info  │                      
-│ -------------------- │hinge
-│                      │                      
-│    Flick Keyboard    │ 
-└──────────────────────┘lower
-坐姿 / 桌面态（Seated）MV模式示意：
-```text
-┌──────────────────────┐upper
-│MV                    │                      
-│                      │  
-│                      │                      
-│ -------------------- │hinge
-│                      │                      
-│   Lyrics             │ 
-└──────────────────────┘lower
-```
 ### 不按“折叠状态枚举”硬切 UI
 
 虽然 iPhone Duo 有多种物理姿态，Apple 当前官方指导的核心不是：
