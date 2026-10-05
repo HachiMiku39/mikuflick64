@@ -1,15 +1,14 @@
 # 人工适配测试交接
 
-2026-10-05，v0.2.0 r2 测试版交付。此次更新包含新一轮布局调整和法语、西班牙语、韩语本地化，并提供供用户自行签名的真机 IPA。原生构建、布局冒烟检查及其限制详见 [验证记录](VALIDATION.md)；八种形态的完整游戏与适配验收仍交由用户人工执行。按用户要求，完成打包发布后停止自动适配操作。
+2026-10-06，v0.2.0 r3 测试版交付。此次更新包含新一轮布局调整和法语、西班牙语、韩语本地化，并提供供用户自行签名的真机 IPA。原生构建、布局冒烟检查及其限制详见 [验证记录](VALIDATION.md)；八种形态的完整游戏与适配验收仍交由用户人工执行。按用户要求，完成打包发布后停止自动适配操作。
 
 ## 下载与运行
 
-[r2 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v0.2.0-r2)提供以下文件：
+[r3 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v0.2.0-r3)提供以下文件：
 
-- [MikuFlick64-0.2.0-build3-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/MikuFlick64-0.2.0-build3-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
-- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
-- [MikuFlick64-iOS-Simulator-arm64.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/MikuFlick64-iOS-Simulator-arm64.zip)：用于 Apple Silicon Mac 的 iOS 模拟器，不能作为真机 IPA 安装。
-- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/SHA256SUMS.txt)：下载文件校验清单。
+- [MikuFlick64-0.2.0-build4-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/MikuFlick64-0.2.0-build4-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
+- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
+- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/SHA256SUMS.txt)：下载文件校验清单。
 
 真机 IPA 的系统要求为 iOS／iPadOS 17.0 或更高版本、arm64。iPhone Duo 的专用折叠形态 API 要求 iOS 27.1 或更高版本，真机折叠切换尚未测试。
 
@@ -18,6 +17,8 @@
 IPA 是未签名的设备构建，当前没有可用的项目开发团队签名。本轮尚未验证用户签名后的真机安装、触摸或音频表现；从源码运行到真机也需在 Xcode Signing 选择自己的开发团队。此前的交付包保留供对照。
 
 ## 本轮变更
+
+r3 新增：iPhone 竖屏 Gauge 加宽、Legacy Logo 放大、选歌标题与返回按钮同高；RESULT OCR-A 标题与去字背景、1 秒黑屏渐变和逐位滚动成绩、点按跳过；唯一 OCR-A Loading...；修复 Duo 难度裁切、返回位置及 Book 结算按钮溢出。
 
 - 歌曲加载和普通场景转场均为 1 秒；设置进入子选项或帮助章节、再从子页返回，双向都不转场。媒体尚未准备完成时，仍需等待实际加载结束。
 - Legacy 选曲使用连续的新背景，将标题、歌曲 Logo、封面、歌曲信息、难度和底部操作分区摆放。Cover Flow 保持居中，底部仅保留 Play，返回操作使用系统导航位置。移除所有随机选曲、Shuffle 按钮及其播放功能，保留播放列表和循环。
