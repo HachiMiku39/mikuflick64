@@ -17,20 +17,20 @@
 | [MikuFlick64-iOS-Simulator-arm64.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/MikuFlick64-iOS-Simulator-arm64.zip) | Apple Silicon Mac 的 iOS 模拟器应用；请在模拟器中运行。 |
 | [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/SHA256SUMS.txt) | 下载文件的 SHA-256 校验清单。 |
 
-**系统要求：**iOS / iPadOS **17.0 或更高版本**、**arm64** 设备。iPhone Duo 的专用折叠形态 API 适配需要 **iOS 27.1 或更高版本**；折叠切换尚待真机测试。
+**系统要求**：iOS / iPadOS **17.0 或更高版本**、**arm64** 设备。iPhone Duo 的专用折叠形态 API 适配需要 **iOS 27.1 或更高版本**；折叠切换尚待真机测试。
 
-**真机安装：**下载 IPA，导入你使用的签名工具，用自己的开发者账号或证书签名，再安装到设备。发布包未包含开发团队签名，用户签名后的安装与运行仍待验证。
+**真机安装**：下载 IPA，导入你使用的签名工具，用自己的开发者账号或证书签名，再安装到设备。发布包未包含开发团队签名，用户签名后的安装与运行仍待验证。
 
-**从源码运行：**解压 `MikuFlick64-Source.zip`，用 Xcode 打开 `MikuFlick64.xcodeproj`，选择 `MikuFlick64` Scheme 和目标设备。本轮使用 Xcode 27.2 beta 2（27B5028f）构建；真机运行时在 Signing 中选择自己的开发团队，模拟器无需开发者账号。
+**从源码运行**：解压 `MikuFlick64-Source.zip`，用 Xcode 打开 `MikuFlick64.xcodeproj`，选择 `MikuFlick64` Scheme 和目标设备。本轮使用 Xcode 27.2 beta 2（27B5028f）构建；真机运行时在 Signing 中选择自己的开发团队，模拟器无需开发者账号。
 
 ## 已提供的功能
 
-- **界面：**Legacy Cover Flow、SEKAI-A 封面网格、SEKAI-B 列表；现代横向游戏将 MV 和输入区分开，键盘在输入区域内居中。选歌显示最高分及各难度最高评级，设置提供音量、握持和原版键盘预览。
-- **六种界面语言：**日语、英语、简体中文、法语、西班牙语、韩语，跟随系统应用语言设置。中文采用 PingFang SC；英语、数字、法语和西班牙语采用 Futura，韩文采用系统字体。顶部 `MUSIC SELECT` / `OPTIONS` 在各语言中保持英文大写 OCR A 字体。
-- **音游：**EASY、NORMAL、HARD、EXTREME、BREAK THE LIMIT；三套原版按键图集、引导与字符花瓣，暂停、重开、按歌曲保存的 INPUT TIMING。判定采用研究确认的原版 30 Hz 音频时钟模型。
-- **MV：**独立播放、进度拖动、播放列表顺序连播、循环、歌词开关与卡拉 OK 伴奏。日语显示原文，其它支持语言显示日语原文与对应译文；缺少译文时省略第二行。
-- **歌词：**17 首歌曲配套英语、简体中文、法语、西班牙语、韩语五种译文，各语言 479 条歌词 cue。英语和中文为项目自译，法语、西班牙语、韩语为项目 AI 翻译；以游戏实际歌词段落为准。
-- **资源包：**主菜单可直接选择 ZIP / RAR 安装，应用内解压、校验、转换影片和音轨并注册歌曲。界面帮助以本地导入教程替代旧商店内容，统一使用 MV 名称。
+- **界面**：Legacy Cover Flow、SEKAI-A 封面网格、SEKAI-B 列表；现代横向游戏将 MV 和输入区分开，键盘在输入区域内居中。选歌显示最高分及各难度最高评级，设置提供音量、握持和原版键盘预览。
+- **六种界面语言**：日语、英语、简体中文、法语、西班牙语、韩语，跟随系统应用语言设置。中文采用 PingFang SC；英语、数字、法语和西班牙语采用 Futura，韩文采用系统字体。顶部 `MUSIC SELECT` / `OPTIONS` 在各语言中保持英文大写 OCR A 字体。
+- **音游**：EASY、NORMAL、HARD、EXTREME、BREAK THE LIMIT；三套原版按键图集、引导与字符花瓣，暂停、重开、按歌曲保存的 INPUT TIMING。判定采用研究确认的原版 30 Hz 音频时钟模型。
+- **MV**：独立播放、进度拖动、播放列表顺序连播、循环、歌词开关与卡拉 OK 伴奏。日语显示原文，其它支持语言显示日语原文与对应译文；缺少译文时省略第二行。
+- **歌词**：17 首歌曲配套英语、简体中文、法语、西班牙语、韩语五种译文，各语言 479 条歌词 cue。英语和中文为项目自译，法语、西班牙语、韩语为项目 AI 翻译；以游戏实际歌词段落为准。
+- **资源包**：主菜单可直接选择 ZIP / RAR 安装，应用内解压、校验、转换影片和音轨并注册歌曲。界面帮助以本地导入教程替代旧商店内容，统一使用 MV 名称。
 
 工程内置 **11 首基础歌曲**；另外六首歌曲的字幕已准备好，影片需导入 **Mov_11 / Mov_99** 资源包后播放。
 
@@ -1419,3 +1419,4 @@ Version control + documentation
 *Development specification refreshed: 2026-10-05*  
 *Target: iOS / iPadOS 26+ baseline; iPhone Duo support built and tested with iOS 27 / Xcode 27.1 SDK*  
 *Original reference: MikuFlick2 1.1.5 / ARMv7 / cryptid 0*
+
