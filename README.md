@@ -1258,6 +1258,104 @@ maintainable community codebase
 
 ---
 
+# 19. 本项目使用的软件工具
+
+下面列出 MikuFlick64 当前开发、逆向分析、资源处理和协作流程中已经使用或明确纳入工作流的软件。未实际确定采用的候选工具，不放进这张表。
+
+## 19.1 开发与调试
+
+| 工具 | 用途 | 链接 |
+|---|---|---|
+| **Xcode** | MikuFlick64 主工程开发、编译、签名、真机调试、Simulator、性能分析 | [Apple Developer - Xcode](https://developer.apple.com/xcode/) |
+| **Xcode Simulator / Device Support** | iPhone、iPad、iPhone Duo 等不同窗口与设备环境测试 | [Xcode Documentation](https://developer.apple.com/documentation/xcode) |
+| **Instruments** | CPU、内存、卡顿、GPU / rendering、Energy 等性能分析；随 Xcode 提供 | [Apple Developer - Instruments](https://developer.apple.com/documentation/xcode/instruments) |
+| **Icon Composer** | iOS / iPadOS 26+ 多层 Liquid Glass App Icon 制作 | [Apple Developer - Icon Composer](https://developer.apple.com/icon-composer/) |
+| **OpenAI Codex** | 阅读和修改现有 Xcode 工程、实现功能、重构、测试与持续改进 | [OpenAI Codex](https://openai.com/codex/) |
+| **Git** | 本地版本控制 | [git-scm.com](https://git-scm.com/) |
+| **GitHub** | 代码托管、提交历史、研究文档与项目协作 | [github.com](https://github.com/) |
+
+### Xcode Command Line Tools
+
+逆向和工程检查中还会直接使用 Apple / macOS 自带的命令行工具，例如：
+
+```text
+file
+otool
+lipo
+shasum
+xcrun
+codesign
+```
+
+这些工具主要用于：
+
+- 检查 Mach-O 架构
+- 查看 Load Commands / `LC_ENCRYPTION_INFO`
+- 检查 armv7 / arm64 架构
+- 计算资源哈希
+- 查询 SDK / toolchain
+- 检查签名状态
+
+入口：[Xcode Resources / Additional Tools](https://developer.apple.com/xcode/resources/)
+
+## 19.2 逆向工程与二进制分析
+
+| 工具 | 用途 | 链接 |
+|---|---|---|
+| **Ghidra 12.1.4** | MikuFlick2 ARMv7 主程序静态分析、Decompiler、XREF、数据表与 Objective-C 符号研究 | [NSA Ghidra](https://github.com/NationalSecurityAgency/ghidra) · [Releases](https://github.com/NationalSecurityAgency/ghidra/releases) |
+| **JDK 25 (64-bit)** | Ghidra 12.1.x 运行环境 | [OpenJDK 25](https://jdk.java.net/25/) |
+| **Hex Fiend** | macOS 下查看、比较和原位修改 USM / 二进制资源 | [hexfiend.com](https://hexfiend.com/) |
+
+## 19.3 CRIWARE / 媒体资源研究
+
+| 工具 | 用途 | 链接 |
+|---|---|---|
+| **CriStudio / CriCodecs** | 查看和解析 CRIWARE 的 USM、ADX、UTF、CPK 等资源；辅助提取与资源结构研究 | [Youjose/CriCodecs](https://github.com/Youjose/CriCodecs) |
+| **FFmpeg / FFprobe** | 检查 USM 中的媒体流、音视频属性、解码与格式验证 | [ffmpeg.org](https://ffmpeg.org/) · [Download](https://ffmpeg.org/download.html) |
+| **Python 3** | CUE / UTF / plist / NSKeyedArchiver 数据解析、批量资源处理、哈希与验证脚本 | [python.org](https://www.python.org/) |
+
+## 19.4 Apple SDK / Frameworks
+
+这些不是单独安装的第三方软件，但属于 MikuFlick64 当前建议使用的 Apple 开发栈：
+
+| Framework / API | 主要用途 | 链接 |
+|---|---|---|
+| **Swift / SwiftUI / UIKit** | App 主体、现代 UI、窗口与输入交互 | [Swift](https://developer.apple.com/swift/) · [SwiftUI](https://developer.apple.com/xcode/swiftui/) · [UIKit](https://developer.apple.com/documentation/uikit) |
+| **AVFoundation** | 音频、MV 播放和现代媒体时间基础 | [AVFoundation](https://developer.apple.com/av-foundation/) |
+| **QuartzCore / CADisplayLink** | ProMotion、高刷新率 Presentation 与显示同步 | [QuartzCore](https://developer.apple.com/documentation/quartzcore) |
+| **Metal** | 如果自定义 Gameplay Renderer 需要更底层的 GPU 渲染时使用 | [Metal](https://developer.apple.com/metal/) |
+| **Core Animation** | HUD、歌词、过渡和其他 UI 动画 | [Core Animation](https://developer.apple.com/documentation/quartzcore) |
+
+## 19.5 工具链原则
+
+```text
+Xcode / Codex
+    ↓
+Modern 64-bit implementation
+
+Ghidra
+    ↓
+Original behavior reference
+
+Python + CriCodecs + FFmpeg + Hex Fiend
+    ↓
+Legacy asset / USM / metadata research
+
+Git + GitHub
+    ↓
+Version control + documentation
+```
+
+对于 Codex：
+
+> README 是对现有 Xcode 工程的改进建议和兼容性约束。Codex 应优先读取当前工程，再决定如何修改，不应根据本文重新生成一个平行项目。
+
+对于逆向工具：
+
+> Ghidra、CriCodecs、FFmpeg、Python 与 Hex Fiend 的产出用于确认原版行为和建立资源兼容层；现代版代码应逐步减少对旧格式内部细节的直接耦合。
+
+---
+
 *Development specification refreshed: 2026-10-05*  
 *Target: iOS / iPadOS 26+ baseline; iPhone Duo support built and tested with iOS 27 / Xcode 27.1 SDK*  
 *Original reference: MikuFlick2 1.1.5 / ARMv7 / cryptid 0*
