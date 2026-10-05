@@ -1,7 +1,7 @@
 # MikuFlick64
 
-> **MikuFlick /02 的现代 64 位重构计划**  
-> 基线面向 iOS / iPadOS 26+，并将 **iPhone Duo** 作为正式支持目标。iPhone Duo 适配以 Apple 当前公开的设计规范与 Xcode 27.1 / iOS 27 SDK 为基准，在现代 Apple 设备上重新实现原版玩法、手感、计分与视觉身份。
+> **MikuFlick /02 的现代 64 位重构项目改进建议与架构说明**  
+> 本仓库已经有正在 Xcode 中实现的项目。本文不是“从零开始重做”的施工清单，而是为现有 Codex / Xcode 工程提供持续改进建议、兼容性约束和架构参考。基线面向 iOS / iPadOS 26+，并将 **iPhone Duo** 作为正式支持目标。
 
 ![Status](https://img.shields.io/badge/status-design%20%2F%20research-4c8bf5)
 ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20iPadOS-black?logo=apple)
@@ -38,7 +38,15 @@ MikuFlick64
 
 ## 当前状态
 
-目前仓库以 **开发规格、逆向结果整合和架构设计** 为主。
+目前仓库已经进入 Xcode / Codex 实际开发阶段；README 主要用于记录 **改进建议、逆向结果整合、兼容性约束和后续架构方向**。
+
+> **对 Codex 的使用原则**
+>
+> - 优先阅读并理解现有 Xcode 工程，而不是按 README 重新生成一套平行工程。
+> - 任何建议都应先映射到当前代码结构，再决定是重构、替换还是保留。
+> - 已经工作的模块不应仅为了“更现代”而无意义重写。
+> - 原版机制兼容性高于代码风格统一。
+> - UI、媒体、资源和设备适配可以渐进式改进，不要求一次性推倒重来。
 
 | 模块 | 状态 |
 |---|---|
@@ -898,9 +906,9 @@ Metal frame loop != gameplay clock
 
 ---
 
-# 13. 开发路线图
+# 13. 改进建议与后续优先级
 
-## P0 - Make the game playable
+## P0 - 先保证当前工程可玩与原版兼容
 
 - [ ] 建立 iOS / iPadOS 26+ 64 位工程
 - [ ] Scene-based 生命周期
@@ -917,7 +925,7 @@ Metal frame loop != gameplay clock
 - [ ] Classic iPhone Gameplay UI
 - [ ] 一首歌从进入 Gameplay 到 Result 完整跑通
 
-## P1 - Modern Apple device support
+## P1 - 在现有工程上补强现代 Apple 设备支持
 
 - [ ] Safe Area 全面接入
 - [ ] iPad native target
@@ -932,7 +940,7 @@ Metal frame loop != gameplay clock
 - [ ] ProMotion presentation
 - [ ] 60 Hz 与 120 Hz 真机手感一致性测试
 
-## P2 - UI modernization
+## P2 - UI 与资源现代化
 
 - [ ] Legacy Song Select
 - [ ] Modern Song List
@@ -943,7 +951,7 @@ Metal frame loop != gameplay clock
 - [ ] Asset restoration pipeline
 - [ ] Result UI 现代化
 
-## P3 - Optional / extended
+## P3 - 可选扩展
 
 - [ ] iPhone Duo advanced multi-display / scene experiences
 - [ ] Practice Mode
@@ -1003,7 +1011,7 @@ same rank
 
 # 15. 非目标
 
-首版不追求：
+当前改进阶段不优先追求：
 
 - 逐像素复制所有 2012 UI
 - 使用旧 iPhone Compatibility Mode
