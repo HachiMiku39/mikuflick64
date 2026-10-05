@@ -1,7 +1,7 @@
 # MikuFlick64
 
 > **MikuFlick /02 的现代 64 位重构计划**  
-> 面向 iOS / iPadOS 26+，目标是在现代 Apple 设备上重新实现原版玩法、手感、计分与视觉身份，同时用现代布局、媒体与渲染架构替代 2012 年时代的技术栈。
+> 基线面向 iOS / iPadOS 26+，并将 **iPhone Duo** 作为正式支持目标。iPhone Duo 适配以 Apple 当前公开的设计规范与 Xcode 27.1 / iOS 27 SDK 为基准，在现代 Apple 设备上重新实现原版玩法、手感、计分与视觉身份。
 
 ![Status](https://img.shields.io/badge/status-design%20%2F%20research-4c8bf5)
 ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20iPadOS-black?logo=apple)
@@ -53,6 +53,8 @@ MikuFlick64
 | 原版 BGM / SE 用途 | 部分确认 |
 | 现代 64 位运行时 | 规划中 |
 | 现代 UI / iPad 适配 | 规划中 |
+| iPhone Duo Outer / Inner Display 适配 | 规划中 |
+| iPhone Duo Pose / Resize 连续性 | 规划中 |
 | ProMotion Presentation | 规划中 |
 | 原版资源本地导入器 | 规划中 |
 
@@ -216,26 +218,142 @@ Wide 模式示意：
 
 Apple 的 iPadOS 指导特别强调对可变窗口尺寸进行平滑适配，所以 resize 时应只重排 Presentation，不重建歌曲状态。
 
-## 2.4 Future Foldable / Dual-Pane Placeholder
+## 2.4 iPhone Duo
 
-README 中保留 `Duo` / 折叠设备概念，只作为未来扩展接口。
+**iPhone Duo 已经是 Apple 正式公布并提供开发文档的产品目标，不再作为未来硬件占位符处理。**
 
-目前不要假设：
+Apple 官方资料确认 iPhone Duo 具有：
 
-- Apple 已经存在公开的 fold-state API
-- 某个具体未来设备型号一定存在
-- 展开尺寸、铰链区域、动画方式已经确定
+- Outer Display
+- Inner Display
+- 中央 hinge
+- partially folded / book / tent 等多种姿态
+- Inner Display 上更宽的 regular-width 空间
+- Split View multitasking
+- 多显示区域和 scene 相关能力
 
-推荐只保留抽象：
+MikuFlick64 应把 iPhone Duo 当作与 iPhone / iPad 并列的正式测试目标。
+
+### Outer Display
+
+Apple 指导中，Outer Display 的 size class 行为接近传统 iPhone：
+
+```text
+Portrait:
+horizontal = compact
+vertical   = regular
+
+Landscape:
+horizontal = compact
+vertical   = compact
+```
+
+MikuFlick64 默认使用：
+
+```text
+Classic Phone Layout
+```
+
+但需要额外注意：
+
+- 侧边系统 controls
+- 非对称 Safe Area
+- 外屏前置相机区域
+- Split View / PiP 导致的实时 resize
+
+### Inner Display
+
+Inner Display 提供：
+
+```text
+horizontal = regular
+vertical   = regular
+```
+
+因此是 MikuFlick64 的主要大屏布局目标：
+
+```text
+MV | Lyrics / Gameplay / HUD
+```
+
+Apple 明确建议不要只把外屏 UI 横向吹大，而是利用 regular-width 空间显示更多内容，例如 split view / two-column layout。
+
+### 不按“折叠状态枚举”硬切 UI
+
+虽然 iPhone Duo 有多种物理姿态，Apple 当前官方指导的核心不是：
 
 ```swift
-protocol DisplayCapabilityProvider {
-    var supportsExpandedDualPane: Bool { get }
-    var isExpanded: Bool { get }
+if foldState == .book { ... }
+if foldState == .tent { ... }
+```
+
+而是优先根据：
+
+```text
+Size Classes
++ Scene Geometry
++ Safe Area
++ Reserved Regions
++ Available Window Size
+```
+
+让同一界面连续适配。
+
+因此 MikuFlick64 的布局入口建议保持：
+
+```swift
+struct DisplayEnvironment {
+    let horizontalSizeClass: UIUserInterfaceSizeClass
+    let verticalSizeClass: UIUserInterfaceSizeClass
+    let sceneBounds: CGRect
+    let safeAreaInsets: UIEdgeInsets
 }
 ```
 
-开发阶段可用 Mock Provider 验证状态连续性。未来如果 Apple 提供官方能力，再把官方 API 接入这一层。
+并由 `LayoutResolver` 决定 Classic / Wide Presentation。
+
+### Hinge / Reserved Regions
+
+iPhone Duo 的 hinge 和摄像头会形成需要避让的区域。
+
+Gameplay 原则：
+
+- 不让关键 Flick 控件跨 hinge
+- 不让暂停键、判定文字等交互元素压在 reserved region 上
+- 连续滚动背景 / MV 可以跨区域显示，但关键交互应服从 Safe Area
+- partially folded 时只改变 Presentation，不重建 Gameplay State
+
+### Inner Display 的 Orientation 注意事项
+
+Apple 明确指出：**Inner Display 不应依赖 supported interface orientations 来决定布局。**
+
+所以不要写：
+
+```swift
+if orientation == .landscape {
+    useWideLayout()
+}
+```
+
+应优先写成：
+
+```text
+regular width + available geometry
+→ Wide Layout
+```
+
+### SDK
+
+Apple 已提供 iPhone Duo 专用开发资源，并要求使用最新 SDK 进行构建和测试。
+
+当前开发基线：
+
+```text
+Xcode 27.1 beta or newer
+iOS 27 SDK for iPhone Duo testing
+```
+
+项目仍可保留 iOS / iPadOS 26+ deployment target，但 iPhone Duo 特定适配代码应使用可用性检查与当前 SDK 构建。
 
 ---
 
@@ -249,7 +367,7 @@ Apple 的 `safeAreaLayoutGuide` 表示未被系统栏、硬件区域和其他覆
 - 关键 Gameplay HUD、暂停按钮、输入区不能盲目贴边
 - 不要为 Dynamic Island 写死像素常量
 - 窗口变化后重新读取 Safe Area
-- 横屏、iPad 小窗口、未来新硬件都必须经过同一套布局解析器
+- 横屏、iPad 小窗口、iPhone Duo Outer / Inner Display 都必须经过同一套布局解析器
 
 推荐：
 
@@ -618,7 +736,8 @@ Platform
 ├── SafeAreaProvider
 ├── DisplayRefreshProvider
 ├── LayoutResolver
-└── FutureDisplayCapabilityProvider
+├── DuoDisplayEnvironment
+└── ReservedRegionAdapter
 ```
 
 ---
@@ -805,7 +924,11 @@ Metal frame loop != gameplay clock
 - [ ] iPad portrait Classic Canvas
 - [ ] iPad resizable window
 - [ ] Wide Gameplay Layout
-- [ ] resize / rotate 不重置 GameState
+- [ ] iPhone Duo Outer Display Classic Layout
+- [ ] iPhone Duo Inner Display Wide Layout
+- [ ] iPhone Duo partially folded / resize 状态连续性
+- [ ] hinge / reserved region 避让
+- [ ] resize / rotate / open-close 不重置 GameState
 - [ ] ProMotion presentation
 - [ ] 60 Hz 与 120 Hz 真机手感一致性测试
 
@@ -820,9 +943,9 @@ Metal frame loop != gameplay clock
 - [ ] Asset restoration pipeline
 - [ ] Result UI 现代化
 
-## P3 - Future / optional
+## P3 - Optional / extended
 
-- [ ] future dual-pane capability adapter
+- [ ] iPhone Duo advanced multi-display / scene experiences
 - [ ] Practice Mode
 - [ ] lyric seek
 - [ ] romanization / translation layers
@@ -888,7 +1011,7 @@ same rank
 - 重新发明一套默认计分系统
 - 把普通 Pro Max 自动当作“大屏双栏设备”
 - 把所有原版商业歌曲、MV、图像直接打包进公开仓库
-- 为尚未公布的未来 Apple 硬件写死私有或猜测 API
+- 为 iPhone Duo 写死设备型号、固定尺寸或猜测性的私有 API
 
 ---
 
@@ -896,6 +1019,12 @@ same rank
 
 实现时优先以 Apple 当前官方文档为准，而不是照搬旧 iOS 时代样例代码。
 
+- [Get ready for iPhone Duo](https://developer.apple.com/iphone-duo/)
+- [Human Interface Guidelines: Designing for iPhone Duo](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo)
+- [Tech Talk: Prepare your app for iPhone Duo](https://developer.apple.com/videos/play/tech-talks/111461/)
+- [Tech Talk: Design for iPhone Duo](https://developer.apple.com/videos/play/tech-talks/111466/)
+- [Tech Talk: Strike a pose with adaptive layouts on iPhone Duo](https://developer.apple.com/videos/play/tech-talks/111463/)
+- [Tech Talk: Leverage multiple displays and scenes on iPhone Duo](https://developer.apple.com/videos/play/tech-talks/111464/)
 - [Human Interface Guidelines: Layout](https://developer.apple.com/design/human-interface-guidelines/layout)
 - [Positioning content relative to the safe area](https://developer.apple.com/documentation/uikit/positioning-content-relative-to-the-safe-area)
 - [UIView.safeAreaLayoutGuide](https://developer.apple.com/documentation/uikit/uiview/safearealayoutguide)
@@ -916,7 +1045,8 @@ same rank
 3. **ProMotion 刷新率是动态的，App 只能表达偏好，不能假设恒定 120 Hz。**
 4. **显示刷新率和 Gameplay Clock 必须解耦。**
 5. **Launch Screen 使用现代系统配置，不继续依赖旧 LaunchImage 体系。**
-6. **未来硬件能力应通过抽象层接入，不要用 model identifier 把猜测写进核心 Gameplay。**
+6. **iPhone Duo 是正式支持目标。布局应以 size classes、scene geometry、safe areas 和 reserved regions 为基础，不要用 model identifier 或固定 Duo 尺寸驱动 Gameplay。**
+7. **Outer Display 与 Inner Display 属于同一连续体验，打开、关闭、部分折叠和 resize 时不得重置歌曲或 Gameplay State。**
 
 ---
 
@@ -979,5 +1109,5 @@ maintainable community codebase
 ---
 
 *Development specification refreshed: 2026-10-05*  
-*Target: iOS / iPadOS 26+*  
+*Target: iOS / iPadOS 26+ baseline; iPhone Duo support built and tested with iOS 27 / Xcode 27.1 SDK*  
 *Original reference: MikuFlick2 1.1.5 / ARMv7 / cryptid 0*
