@@ -15,12 +15,13 @@
 它的目标是：
 
 - 用现代 64 位工程重新实现 **MikuFlick /02 的核心 Gameplay**
-- 原版判定、Combo、Score、Microphone Gauge、Crimax、Interlude 尽量保持兼容
+- 原版判定、Combo、Score、Microphone Gauge、Crimax、Interlude 尽量保持兼容（详见Ghidra逆向结果）
 - 使用现代 iPhone / iPad 的布局体系、Safe Area 和可变窗口能力
 - 在支持 ProMotion 的设备上获得流畅的 60/80/120 Hz 视觉表现
 - **判定逻辑仍保持原版约 30 Hz 的音频时钟模型**，渲染刷新率不得改变手感
 - 原版低分辨率 Texture Atlas 可作为兼容资源和视觉参考，但不再绑定旧坐标系
-- 原版歌曲、MV、音效与图像资源应通过本地导入流程使用，而不是默认随开源代码分发
+- 原版ipa内歌曲、MV、音效与图像资源默认随开源代码分发，保留原游戏感
+- 包名暂定为 com.sbga.mikuflick64
 
 一句话概括：
 
@@ -47,6 +48,7 @@ MikuFlick64
 > - 已经工作的模块不应仅为了“更现代”而无意义重写。
 > - 原版机制兼容性高于代码风格统一。
 > - UI、媒体、资源和设备适配可以渐进式改进，不要求一次性推倒重来。
+> - 原版内容在原有的ipa里，可以解压获得。
 
 | 模块 | 状态 |
 |---|---|
@@ -226,6 +228,16 @@ Wide 模式示意：
 
 Apple 的 iPadOS 指导特别强调对可变窗口尺寸进行平滑适配，所以 resize 时应只重排 Presentation，不重建歌曲状态。
 
+MV Wide模式示意：
+```text
+┌──────────────────────┬──────────────────────┐
+│                      │                      │
+│         MV           │                      │
+│                      │ Lyrics      Rolling  │
+│                      │                      │
+│                      │ Like Apple Music     │
+└──────────────────────┴──────────────────────┘
+```
 ## 2.4 iPhone Duo
 
 **iPhone Duo 已经是 Apple 正式公布并提供开发文档的产品目标，不再作为未来硬件占位符处理。**
@@ -241,6 +253,23 @@ Apple 官方资料确认 iPhone Duo 具有：
 - 多显示区域和 scene 相关能力
 
 MikuFlick64 应把 iPhone Duo 当作与 iPhone / iPad 并列的正式测试目标。
+
+Apple 现在对 iPhone Duo 的说法比较明确，核心词是 pose（姿态），不是给每个铰链角度硬塞一个“模式”。
+
+官网产品页直接列出的官方名称有这 5 个：
+
+Apple官方英文 ｜	可以怎么理解｜	典型状态
+Closed	｜闭合态	｜完全折叠，只用 5.4 英寸外屏
+Landscape	｜横向展开态	｜内屏完全展开，宽屏使用
+Portrait	｜纵向展开态｜	内屏完全展开后旋转 90°
+Seated	｜坐姿 / 桌面态	｜半折，像小笔记本放桌上，内屏朝向用户
+Standing	｜站立态	｜半折后靠两侧边缘自行站立，常用外屏看内容
+
+
+其中开发文档还用了两个很重要、但更偏“状态描述”的术语：
+
+- Fully open：完全展开。
+- Partially folded：部分折叠。Apple 经常进一步描述成 “partially folded, like a book”，也就是像书一样半开。HIG 甚至专门比较了 Fully open 和 Partially folded 的布局变化。Apple Developer
 
 ### Outer Display
 
@@ -286,6 +315,29 @@ MV | Lyrics / Gameplay / HUD
 
 Apple 明确建议不要只把外屏 UI 横向吹大，而是利用 regular-width 空间显示更多内容，例如 split view / two-column layout。
 
+坐姿 / 桌面态（Seated）游戏模式示意：（可以参考Nintendo 3DS的交互）
+
+```text
+
+┌──────────────────────┐upper
+│MV                    │                      
+│ SCORE / COMBO        │  
+│  Lyrics / Note info  │                      
+│ -------------------- │hinge
+│                      │                      
+│    Flick Keyboard    │ 
+└──────────────────────┘lower
+坐姿 / 桌面态（Seated）MV模式示意：
+```text
+┌──────────────────────┐upper
+│MV                    │                      
+│                      │  
+│                      │                      
+│ -------------------- │hinge
+│                      │                      
+│   Lyrics             │ 
+└──────────────────────┘lower
+```
 ### 不按“折叠状态枚举”硬切 UI
 
 虽然 iPhone Duo 有多种物理姿态，Apple 当前官方指导的核心不是：
