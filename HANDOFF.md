@@ -1,14 +1,14 @@
 # 人工适配测试交接
 
-2026-10-06，v0.2.0 r3 测试版交付。此次更新包含新一轮布局调整和法语、西班牙语、韩语本地化，并提供供用户自行签名的真机 IPA。原生构建、布局冒烟检查及其限制详见 [验证记录](VALIDATION.md)；八种形态的完整游戏与适配验收仍交由用户人工执行。按用户要求，完成打包发布后停止自动适配操作。
+2026-10-06，v1.1.6（build 5）测试版交付。此次更新包含新一轮布局调整和法语、西班牙语、韩语本地化，并提供供用户自行签名的真机 IPA。原生构建、布局冒烟检查及其限制详见 [验证记录](VALIDATION.md)；八种形态的完整游戏与适配验收仍交由用户人工执行。按用户要求，完成打包发布后停止自动适配操作。
 
 ## 下载与运行
 
-[r3 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v0.2.0-r3)提供以下文件：
+[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6)提供以下文件：
 
-- [MikuFlick64-0.2.0-build4-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/MikuFlick64-0.2.0-build4-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
-- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
-- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/SHA256SUMS.txt)：下载文件校验清单。
+- [MikuFlick64-1.1.6-build5-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6/MikuFlick64-1.1.6-build5-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
+- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
+- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6/SHA256SUMS.txt)：下载文件校验清单。
 
 真机 IPA 的系统要求为 iOS／iPadOS 17.0 或更高版本、arm64。iPhone Duo 的专用折叠形态 API 要求 iOS 27.1 或更高版本，真机折叠切换尚未测试。
 
@@ -17,6 +17,9 @@
 IPA 是未签名的设备构建，当前没有可用的项目开发团队签名。本轮尚未验证用户签名后的真机安装、触摸或音频表现；从源码运行到真机也需在 Xcode Signing 选择自己的开发团队。此前的交付包保留供对照。
 
 ## 本轮变更
+
+1.1.6 新增：Bundle ID `jp.sbga.mikuflick`；全部六语言难度、判定和 FAST／LATE 保持英语；打包校验明确验证完整的 11 首内置免费歌曲。新包名的首次启动、选歌、媒体播放、失败结算已在 iPhone Air 模拟器检查，全部六语言的英文术语通过逻辑测试。旧包名的数据不会自动迁入新沙盒。
+
 
 r3 新增：iPhone 竖屏 Gauge 加宽、Legacy Logo 放大、选歌标题与返回按钮同高；RESULT OCR-A 标题与去字背景、1 秒黑屏渐变和逐位滚动成绩、点按跳过；唯一 OCR-A Loading...；修复 Duo 难度裁切、返回位置及 Book 结算按钮溢出。
 
@@ -44,7 +47,7 @@ r3 新增：iPhone 竖屏 Gauge 加宽、Legacy Logo 放大、选歌标题与返
 
 字幕覆盖当前 17 首曲目：每种翻译语言 479 句，五种译文共 85 个字幕轨道、2395 条译文。新增法语、西班牙语和韩语字幕标明为本项目 AI 翻译。额外曲包的影片仍需自行导入，模拟器沙盒中已安装的影片不随源码交付。
 
-`MUSIC SELECT` 和 `OPTIONS` 保持固定大写英语，使用 OCR-A 字体；其余动态英文、法语、西班牙语及数字使用 Futura-Medium，动态中文使用苹方，韩文使用 iOS 系统韩文字体。中文界面中的判定、难度分类和 FAST／LATE 保留英语；素材内的文字保持原图。
+`MUSIC SELECT` 和 `OPTIONS` 保持固定大写英语，使用 OCR-A 字体；其余动态英文、法语、西班牙语及数字使用 Futura-Medium，动态中文使用苹方，韩文使用 iOS 系统韩文字体。全部六种语言中的判定、难度分类和 FAST／LATE 保留英语；素材内的文字保持原图。
 
 ## 导入与历史验证范围
 
