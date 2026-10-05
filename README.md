@@ -1,3 +1,63 @@
+# Miku Flick 64 · 64 位重构测试版
+
+在现代 iPhone 和 iPad 上重现 Miku Flick /02 的假名滑动音游与 MV 播放。提供原版风格的 Legacy 界面、Modern 界面、多语言字幕、MV 进度拖动，以及游戏内 ZIP / RAR 资源包安装。
+
+当前发布为 **v0.2.0 r2 测试版**，供玩家签名安装、测试设备适配并反馈问题。**本轮尚未进行真机安装及运行验证。**
+
+- [下载 r2 测试版](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v0.2.0-r2)
+- [资源包下载](https://github.com/HachiMiku39/mikuflick02_soundpack/releases/tag/pack)
+- [阅读保留的原始开发与研究文档](#original-research)
+
+## 下载与运行
+
+| 文件 | 用途 |
+| --- | --- |
+| [MikuFlick64-0.2.0-build3-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/MikuFlick64-0.2.0-build3-unsigned.ipa) | arm64 真机应用；未签名，需自行签名后安装。 |
+| [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/MikuFlick64-Source.zip) | 完整、可编辑的 Xcode 源码工程，可修改或用自己的开发团队运行到真机。 |
+| [MikuFlick64-iOS-Simulator-arm64.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/MikuFlick64-iOS-Simulator-arm64.zip) | Apple Silicon Mac 的 iOS 模拟器应用；请在模拟器中运行。 |
+| [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r2/SHA256SUMS.txt) | 下载文件的 SHA-256 校验清单。 |
+
+**系统要求：**iOS / iPadOS **17.0 或更高版本**、**arm64** 设备。iPhone Duo 的专用折叠形态 API 适配需要 **iOS 27.1 或更高版本**；折叠切换尚待真机测试。
+
+**真机安装：**下载 IPA，导入你使用的签名工具，用自己的开发者账号或证书签名，再安装到设备。发布包未包含开发团队签名，用户签名后的安装与运行仍待验证。
+
+**从源码运行：**解压 `MikuFlick64-Source.zip`，用 Xcode 打开 `MikuFlick64.xcodeproj`，选择 `MikuFlick64` Scheme 和目标设备。本轮使用 Xcode 27.2 beta 2（27B5028f）构建；真机运行时在 Signing 中选择自己的开发团队，模拟器无需开发者账号。
+
+## 已提供的功能
+
+- **界面：**Legacy Cover Flow、SEKAI-A 封面网格、SEKAI-B 列表；现代横向游戏将 MV 和输入区分开，键盘在输入区域内居中。选歌显示最高分及各难度最高评级，设置提供音量、握持和原版键盘预览。
+- **六种界面语言：**日语、英语、简体中文、法语、西班牙语、韩语，跟随系统应用语言设置。中文采用 PingFang SC；英语、数字、法语和西班牙语采用 Futura，韩文采用系统字体。顶部 `MUSIC SELECT` / `OPTIONS` 在各语言中保持英文大写 OCR A 字体。
+- **音游：**EASY、NORMAL、HARD、EXTREME、BREAK THE LIMIT；三套原版按键图集、引导与字符花瓣，暂停、重开、按歌曲保存的 INPUT TIMING。判定采用研究确认的原版 30 Hz 音频时钟模型。
+- **MV：**独立播放、进度拖动、播放列表顺序连播、循环、歌词开关与卡拉 OK 伴奏。日语显示原文，其它支持语言显示日语原文与对应译文；缺少译文时省略第二行。
+- **歌词：**17 首歌曲配套英语、简体中文、法语、西班牙语、韩语五种译文，各语言 479 条歌词 cue。英语和中文为项目自译，法语、西班牙语、韩语为项目 AI 翻译；以游戏实际歌词段落为准。
+- **资源包：**主菜单可直接选择 ZIP / RAR 安装，应用内解压、校验、转换影片和音轨并注册歌曲。界面帮助以本地导入教程替代旧商店内容，统一使用 MV 名称。
+
+工程内置 **11 首基础歌曲**；另外六首歌曲的字幕已准备好，影片需导入 **Mov_11 / Mov_99** 资源包后播放。
+
+## 导入资源包
+
+1. 从[资源包发布页](https://github.com/HachiMiku39/mikuflick02_soundpack/releases/tag/pack)下载 ZIP / RAR，保存到系统“文件”应用。
+2. 回到游戏主菜单，打开“资源包导入（RESOURCE PACK INPUT）”，选择“导入 ZIP / RAR”；也可从“文件”应用分享给 Miku Flick 64。
+3. 等待解压、校验、媒体转换和注册完成，再进入音游或 MV 选歌。
+
+压缩包保留原文件名，并包含 `Mov_<编号>` 文件夹；允许外层 `InstallData`，`Thum_<编号>` 缩略图目录可选。当前支持本游戏的 MPEG-1 / ADX USM，以及完整、无密码、非分卷 ZIP / RAR；安装时需为解压原件和转换缓存预留空间。曲包与谱面研究另见[资源包仓库](https://github.com/HachiMiku39/mikuflick02_soundpack)和[自制谱面研究](https://github.com/HachiMiku39/mikuflick_self-made_pattern)。
+
+## 测试范围与反馈
+
+r2 是用于设备适配和玩法反馈的测试交付。iPhone 竖屏、iPad 横竖屏、iPhone Duo 外屏与内屏横竖屏及类 3DS 形态仍由用户人工验证；真机性能、音画同步、触控时延、输入校准、音频中断以及全部歌曲的实际通关测试均待完成。原版完整 Rainbow / Crimax 视觉、解锁逻辑、重播、Twitter 和 Game Center 服务尚未完整复刻。
+
+反馈时请注明设备、系统版本、Legacy / Modern 界面、语言、横竖屏或折叠形态、歌曲与难度，并附截图或复现步骤。源码包包含验证记录、测试说明和人工测试交接资料，可用于继续修正。
+
+原游戏歌曲、MV、图像与音效的权利归原权利人；本项目重新实现运行时，未包含 SEGA 源码。汉化与逆向研究保留在下方及[相关档案仓库](https://github.com/HachiMiku39/mikuflick_chinese_localization)。
+
+---
+
+<a id="original-research"></a>
+
+## 原始开发与研究文档（保留全文）
+
+以下原文记录项目此前的设计建议、汉化与机制研究背景、架构规划和平台目标，完整保留。原文中的 iOS 26+ 开发基线、规划状态和后续功能表述作为历史参考；**当前 r2 的安装要求、已有功能和测试范围以本页顶部发布介绍为准**。
+
 # MikuFlick64
 
 > **MikuFlick /02 的现代 64 位重构项目改进建议与架构说明**  
