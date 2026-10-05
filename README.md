@@ -2,18 +2,18 @@
 
 在 64 位 iPhone 和 iPad 上重现 Miku Flick 02 的假名滑动音游与 MV 播放。沿用原版谱面、影片、图片和提示音，提供原版风格的 Legacy 界面及两套现代界面，并加入多语言字幕、进度拖动和直接导入资源包。
 
-当前发布为 **v0.2.0 r3 测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 17 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。工程内置 11 首基础歌曲，另外六首的影片需要导入 Mov_11／Mov_99 资源包。
+当前发布为 **v1.1.6（build 5）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 17 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。工程内置 11 首基础歌曲，另外六首的影片需要导入 Mov_11／Mov_99 资源包。
 
 ## 下载与运行
 
-[打开 r3 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v0.2.0-r3)。请选择适合你的文件：
+[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6)。请选择适合你的文件：
 
 | 下载 | 用途 |
 |---|---|
-| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/MikuFlick64-0.2.0-build4-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
-| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
-| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
-| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v0.2.0-r3/SHA256SUMS.txt) | 核对下载文件是否完整。 |
+| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6/MikuFlick64-1.1.6-build5-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
+| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
+| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
+| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6/SHA256SUMS.txt) | 核对下载文件是否完整。 |
 
 **系统要求：**iOS／iPadOS 17.0 或更高版本、arm64 设备。iPhone Duo 的专用折叠形态适配需要 iOS 27.1 或更高版本；真机折叠切换尚未测试。
 
@@ -22,6 +22,15 @@
 **从源码运行：**解压工程，用 Xcode 打开 `MikuFlick64.xcodeproj`，选择 `MikuFlick64` Scheme 和目标设备后按 ⌘R。本轮使用 Xcode 27.2 beta 2（27B5028f）构建；真机运行需在 Signing 中选择自己的开发团队，模拟器无需开发者账号。
 
 已完成本轮模拟器布局冒烟检查；全曲手动通关、真实设备触摸与音频表现仍需人工验证。已执行项目与待测范围见 [验证记录](VALIDATION.md)，人工测试事项见 [交接说明](HANDOFF.md)。
+
+## 1.1.6 · build 5 更新（2026-10-06）
+
+- Bundle ID 按用户指定改为 `jp.sbga.mikuflick`，版本号为 `1.1.6`。
+- 六种语言均保留 EASY／NORMAL／HARD／EXTREME／BREAK THE LIMIT（BTL）、NORMAL MODE、COOL／FINE／SAFE／SAD／WORST 和 FAST／LATE 的英文名称。周围说明仍按界面语言显示。
+- IPA 完整包含 11 首内置免费歌曲的影片、谱面、预听、封面和歌曲 Logo；打包时逐文件核对 SHA-256，并验证 iPhoneOS arm64、包名、版本及压缩完整性。
+- 本轮 iPhone Air 模拟器完成新包名首次启动、选曲、歌曲播放和失败结算检查；六语言文字策略测试及 11 首媒体资源检查通过。此前 iPad／Duo 的布局检查记录保留。
+
+包名变化后，旧 `local.rewrite.MikuFlick64` 版本的数据不会自动迁入新应用；旧成绩和导入曲包仍留在旧应用沙盒。签名工具如果改写包名，安装后的标识会以签名工具设置为准。
 
 ## r3 · build 4 更新（2026-10-06）
 
@@ -34,7 +43,7 @@
 ## 界面与语言
 
 - UI 支持英语、日语、简体中文、法语、西班牙语、韩语，跟随 iOS 应用语言设置。繁体中文回落简体中文，不支持的语言按系统语言优先序选择可用语言，最终回落英语。
-- 英语、数字、法语和西班牙语使用 Futura-Medium；中文使用 PingFang SC；韩文使用 iOS 的 AppleSDGothicNeo 系统字体。简体中文界面的难度、COOL／FINE／SAFE／SAD／WORST 和 FAST／LATE 名称保留英语。
+- 英语、数字、法语和西班牙语使用 Futura-Medium；中文使用 PingFang SC；韩文使用 iOS 的 AppleSDGothicNeo 系统字体。所有语言界面的难度、COOL／FINE／SAFE／SAD／WORST 和 FAST／LATE 名称保留英语。
 - 首次启动显示三页教程，也可从设置 → 帮助重新查看。游戏帮助共九章，每章提供六种语言。旧商店章节已改为本地资源包导入教程，界面统一使用 MV。
 - 场景转场至少显示 1 秒，歌曲在转场结束且媒体准备完成后开始；如果准备仍未完成，继续显示加载画面。设置进入子选项、帮助章节，以及从这些子页返回，均不播放转场。
 - 选歌提供 Legacy Cover Flow、SEKAI-A 封面网格和 SEKAI-B 列表。Legacy 显示歌曲标题、难度星数、最高分、BPM，以及每首歌每个难度的最高评级角标；难度文字保留倒影和贯穿横线。选歌底部仅保留 Play，资源导入入口位于主菜单。菜单使用系统导航返回按钮。
