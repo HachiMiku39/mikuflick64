@@ -2537,3 +2537,1864 @@ Crimax / Interlude 等特殊机制
 *整理时间：2026-10-05*  
 *样本：MikuFlick2 1.1.5 / ARMv7 / cryptid 0*  
 *状态：持续逆向中*
+# MikuFlick2 1.1.5 原版得分机制逆向总结
+
+> 本文基于 `MikuFlick2` iOS 版 1.1.5（ARMv7）在 Ghidra 中的静态分析结果整理。  
+> 目标是为现代化重构提供一套尽可能接近原版的 **1:1 Score Engine**。
+>
+> 当前得分主链、Combo Bonus、Crimax、Interlude、BTL 评分差异、最终总分合成以及 Rank 条件均已基本确认。
+
+---
+
+## 1. 总分结构
+
+原版最终成绩由两部分组成：
+
+```text
+Total Score
+= TmpStageScore
++ TmpComboScore
+```
+
+结果页明确执行：
+
+```text
+GetTmpStageScore()
++
+GetTmpComboScore()
+```
+
+并将两者之和用于：
+
+```text
+GetTopScore
+SetTopScore
+```
+
+同时还会分别保存：
+
+```text
+TopStageScore
+TopComboScore
+```
+
+因此可以确认：
+
+```text
+TOTAL SCORE = STAGE SCORE + COMBO SCORE
+```
+
+没有发现：
+
+- Clear Bonus
+- Perfect Bonus
+- Result Bonus
+- 结算倍率
+- 额外歌曲结束奖励
+
+---
+
+# 2. Stage Score
+
+`TmpStageScore` 的已确认来源只有：
+
+```text
+1. 普通 Note 基础判定分
+2. Crimax Bonus
+3. Interlude 单次成功奖励
+4. Interlude 全成功奖励
+```
+
+`+[StatusData_AddTmpStageScore:]` 本身只是：
+
+```text
+m_TmpStageScore += value
+```
+
+没有额外倍率或修正。
+
+---
+
+# 3. 普通 Note 基础分
+
+核心数据表：
+
+```text
+s_tblAddScore
+```
+
+正常组：
+
+| 判定 | Internal ID | Stage Score |
+|---|---:|---:|
+| NONE / INVALID | 0 | 0 |
+| WORST | 1 | 0 |
+| SAD | 2 | 30 |
+| SAFE | 3 | 50 |
+| FINE | 4 | 150 |
+| COOL | 5 | 300 |
+
+因此原版基础分为：
+
+```text
+COOL  = 300
+FINE  = 150
+SAFE  = 50
+SAD   = 30
+WORST = 0
+```
+
+---
+
+# 4. 输入错误与第二套 Score Table
+
+`s_tblAddScore` 实际包含两组：
+
+```text
+Normal:
+0, 0, 30, 50, 150, 300
+
+Secondary:
+0, 0, 30, 50, 150, 250
+```
+
+第二组通过：
+
+```text
+local_28
+```
+
+选择。
+
+`local_28` 已确认是输入不匹配标志：
+
+```text
+Flick 方向正确 → local_28 = 0
+Flick 方向错误 → local_28 = 1
+BoardType 错误 → local_28 = 1
+```
+
+最终基础分读取：
+
+```text
+s_tblAddScore[param_6 + local_28 * 6]
+```
+
+但当前控制流中：
+
+```text
+Flick 方向错误 → 最大只能 SAFE
+BoardType 错误 → 直接 SAD
+```
+
+因此第二组实际可达的只有：
+
+```text
+SAD  = 30
+SAFE = 50
+```
+
+而：
+
+```text
+FINE = 150
+COOL = 250
+```
+
+在 MikuFlick2 1.1.5 当前分析到的正常控制流中不可达。
+
+建议现代版保留完整原表，但注明：
+
+> The secondary FINE/COOL entries appear unreachable in MikuFlick2 1.1.5 and are likely legacy or unused data.
+
+不要为了“清理代码”而删除这组数据。
+
+---
+
+# 5. Combo 条件
+
+普通模式下：
+
+```text
+正确方向 FINE / COOL
+→ AddCombo()
+```
+
+而：
+
+```text
+SAFE / SAD / WORST
+→ ResetCombo()
+```
+
+此外，如果：
+
+```text
+local_28 != 0
+```
+
+即输入方向或 Board 不匹配，即使时间判定较高，也不会进入 Combo 增长路径。
+
+因此普通模式实际条件为：
+
+```text
+result >= FINE
+AND
+local_28 == 0
+```
+
+才会：
+
+```text
+Combo +1
+```
+
+---
+
+# 6. Combo Bonus
+
+`TmpComboScore` 只有一个真实加分入口：
+
+```text
++[StatusData_AddTmpComboScore:]
+```
+
+而这个函数的唯一实际调用者是：
+
+```text
+-[NoteNormal_checkResult::::]
+```
+
+因此 Combo Score 没有其他隐藏来源。
+
+## 6.1 精确公式
+
+原版代码等价于：
+
+```text
+ComboBonus
+= floor((Combo + 5) / 10) × 50
+
+ComboBonus
+= min(ComboBonus, 500)
+```
+
+注意：
+
+```text
+先 AddCombo()
+再读取新的 Combo
+再计算本 Note 的 Combo Bonus
+```
+
+所以阶梯为：
+
+| 判定后的 Combo | 本 Note Combo Bonus |
+|---:|---:|
+| 1–4 | 0 |
+| 5–14 | 50 |
+| 15–24 | 100 |
+| 25–34 | 150 |
+| 35–44 | 200 |
+| 45–54 | 250 |
+| 55–64 | 300 |
+| 65–74 | 350 |
+| 75–84 | 400 |
+| 85–94 | 450 |
+| 95+ | 500 |
+
+例如：
+
+```text
+第 95 Combo
+→ Combo Bonus = 500
+```
+
+之后保持 500 封顶。
+
+---
+
+# 7. 普通 Note 单次得分
+
+不考虑 Crimax 时：
+
+```text
+Single Note Score
+= Base Stage Score
++ Combo Bonus
+```
+
+例如 Combo 已达到 95+：
+
+```text
+COOL:
+300 + 500 = 800
+
+FINE:
+150 + 500 = 650
+```
+
+SAFE 以下不会增加 Combo，也不会获得 Combo Bonus。
+
+---
+
+# 8. Crimax Bonus
+
+Crimax 得分条件：
+
+```text
+m_CrimaxMode != 0
+AND
+result == COOL
+AND
+Combo >= 100
+```
+
+注意：
+
+```text
+Combo 已经在本 Note 判定成功后 +1
+```
+
+然后才检查：
+
+```text
+Combo >= 100
+```
+
+满足后：
+
+```text
+TmpStageScore += 200
+```
+
+因此：
+
+```text
+Crimax Bonus = +200
+```
+
+仅 COOL 有效，FINE 不触发。
+
+## 8.1 Crimax 单 Note 最大得分
+
+当：
+
+```text
+Combo >= 100
+CrimaxMode == 1
+判定 == COOL
+```
+
+则：
+
+```text
+COOL Base       300
+Combo Bonus     500
+Crimax Bonus    200
+-------------------
+Single Note    1000
+```
+
+原版 `StartSpScoreEffect:` 也会直接显示：
+
+```text
+Base Score + Combo Bonus + 200
+```
+
+所以 1000 分单 Note 是原版明确支持的结果。
+
+---
+
+# 9. Interlude 得分
+
+Interlude 是间奏单键小游戏。
+
+成功条件：
+
+```text
+FINE / COOL → Success
+SAFE / SAD  → Not Success
+```
+
+每成功一次：
+
+```text
+TmpInterludeCnt +1
+TotalInterludeSuccess +1
+TmpStageScore +1
+```
+
+因此：
+
+```text
+Interlude Success = +1 Stage Score
+```
+
+如果当前谱面的全部 Interlude 均成功：
+
+```text
+TmpInterludeCnt >= TotalInterlude
+```
+
+额外：
+
+```text
+TmpStageScore += 39
+```
+
+并播放特殊效果。
+
+所以最后一个成功 Interlude 实际贡献：
+
+```text
+1 + 39 = 40
+```
+
+---
+
+# 10. Break The Limit 得分差异
+
+BTL：
+
+```text
+Difficulty == 4
+```
+
+仍然复用：
+
+- 普通基础分表
+- Combo Bonus 公式
+- Crimax Bonus
+
+它不是独立的 Score Engine。
+
+真正不同的是：
+
+```text
+低判定不会 Reset Combo
+不使用普通 Tension Gauge
+SAD 会转成内部 result 0
+Timeout 不记录 WORST
+```
+
+---
+
+# 11. BTL 判定行为
+
+## COOL
+
+```text
+Stage +300
+Combo +1
+Combo Bonus
+Crimax 条件满足时 +200
+```
+
+## FINE
+
+```text
+Stage +150
+Combo +1
+Combo Bonus
+```
+
+## SAFE
+
+```text
+Stage +50
+Combo 不增加
+Combo 不清零
+```
+
+## SAD
+
+在 `checkResult` 中：
+
+```text
+SAD (2)
+→ result = 0
+```
+
+因此：
+
+```text
+Stage +0
+Combo 不增加
+Combo 不清零
+```
+
+## Timeout / Miss
+
+在 `NoteNormal_exec` 中，普通模式超时会：
+
+```text
+WORST
+Gauge penalty
+ResetCombo
+Miss effect
+```
+
+但 BTL 中：
+
+```text
+setActive(0)
+```
+
+后跳过所有普通 WORST 处理。
+
+因此：
+
+```text
+Stage +0
+不记录 WORST
+Combo 不增加
+Combo 不清零
+```
+
+---
+
+# 12. BTL 的 Combo 本质
+
+普通模式 Combo 更接近传统“连续击中”。
+
+BTL 中则：
+
+```text
+COOL/FINE → Combo +1
+
+SAFE
+SAD
+Timeout
+→ Combo 保持
+```
+
+因此 BTL 的 Combo 更接近：
+
+> 累计成功的 COOL/FINE 数量
+
+而不是传统意义上“失误就断”的 Combo。
+
+---
+
+# 13. Tension Gauge 与得分的关系
+
+普通模式中：
+
+```text
+COOL/FINE/SAFE/SAD/WORST
+```
+
+会进入 `NoteManager_AddTensionGauge:`。
+
+但 BTL：
+
+```text
+Difficulty == 4
+```
+
+会跳过普通 Gauge 更新。
+
+Gauge 不直接参与：
+
+```text
+Total Score
+```
+
+因此 Score Engine 与 Gauge Engine 应分离实现。
+
+---
+
+# 14. 最终成绩保存
+
+结算时：
+
+```text
+TmpStageScore = 当前 Stage Score
+TmpComboScore = 当前 Combo Score
+
+TotalScore = TmpStageScore + TmpComboScore
+```
+
+如果刷新最高分：
+
+```text
+SetTopScore
+SetTopStageScore
+SetTopComboScore
+```
+
+还会保存：
+
+```text
+TopNoteResult[0..5]
+FlickSuccessNum
+TopCombo
+TopInterludeCnt
+```
+
+因此现代版最好继续保留：
+
+```text
+stageScore
+comboScore
+totalScore
+```
+
+三个逻辑值，而不是只维护一个 Total Score。
+
+---
+
+# 15. Rank 系统
+
+结果页最终确认的资源对应：
+
+```text
+Rank 0 → perfect.png
+Rank 1 → clearrank_00.png
+Rank 2 → clearrank_01.png
+Rank 3 → clearrank_02.png
+Rank 4 → clearrank_03.png
+Rank 5 → clearrank_04.png
+Rank 6 → clearrank_05.png
+```
+
+实际 UI 对应：
+
+```text
+Rank 0 → Perfect!
+Rank 1 → S
+Rank 2 → A
+Rank 3 → B
+Rank 4 → C
+Rank 5 → D
+Rank 6 → E
+```
+
+---
+
+# 16. Rank 判定条件
+
+## Perfect
+
+```text
+COOL == TotalNotes
+```
+
+即全 COOL。
+
+## S
+
+```text
+COOL + FINE == TotalNotes
+```
+
+且不是全 COOL。
+
+也就是：
+
+```text
+100% FINE-or-better
+```
+
+## A
+
+```text
+(COOL + FINE) / TotalNotes >= 95%
+```
+
+## B
+
+```text
+(COOL + FINE) / TotalNotes >= 80%
+```
+
+## C
+
+首先看：
+
+```text
+(COOL + FINE + SAFE) / TotalNotes >= 70%
+```
+
+满足则最低可到 C。
+
+## D
+
+```text
+(COOL + FINE + SAFE) / TotalNotes < 70%
+```
+
+但未进入 Game Over。
+
+## E
+
+```text
+StatusData_IsGameOver() == true
+```
+
+---
+
+# 17. Rank 音效分组
+
+`WindowResult_exec` 中：
+
+```text
+Perfect
+→ Sound 0x0D
+
+S / A
+→ Sound 0x0C
+
+B / C / D
+→ Sound 0x0B
+
+E
+→ Sound 0x0A
+```
+
+所以原版结果反馈大致分为：
+
+```text
+Perfect
+High Rank
+Normal/Low Rank
+Fail
+```
+
+四种音效档位。
+
+---
+
+# 18. BreakClear
+
+`BreakClear` 是 `MusicData` 的持久化字段：
+
+```text
+m_BreakClear
+IsBreakClear
+SetBreakClear:
+```
+
+结果页条件：
+
+```text
+Difficulty == BTL
+AND
+m_Rank > 3
+```
+
+时：
+
+```text
+SetBreakClear(1)
+```
+
+随后：
+
+```text
+encodeWithCoder:
+→ encodeBool:forKey:
+```
+
+写入存档。
+
+载入时：
+
+```text
+initWithCoder:
+→ decodeBoolForKey:
+```
+
+恢复。
+
+当前二进制中：
+
+```text
+IsBreakClear
+```
+
+没有真实代码调用者。
+
+因此：
+
+> BreakClear 不参与 Total Score 计算，应作为独立的持久化结果状态处理。
+
+---
+
+# 19. 原版 Score Engine 推荐实现
+
+现代版建议做独立兼容层：
+
+```text
+OriginalScoreEngine
+```
+
+至少保留：
+
+```text
+stageScore
+comboScore
+combo
+maxCombo
+judgementCounts[6]
+interludeSuccess
+```
+
+---
+
+# 20. 推荐伪代码
+
+```cpp
+enum JudgeResult {
+    None  = 0,
+    Worst = 1,
+    Sad   = 2,
+    Safe  = 3,
+    Fine  = 4,
+    Cool  = 5
+};
+
+static const int baseScore[2][6] = {
+    { 0, 0, 30, 50, 150, 300 },
+    { 0, 0, 30, 50, 150, 250 }
+};
+
+int comboBonus(int combo)
+{
+    int bonus = ((combo + 5) / 10) * 50;
+
+    if (bonus > 500)
+        bonus = 500;
+
+    return bonus;
+}
+```
+
+普通模式：
+
+```cpp
+void scoreNormalNote(
+    JudgeResult result,
+    bool wrongInput,
+    bool crimaxMode)
+{
+    judgementCounts[result]++;
+
+    if (result >= Fine && !wrongInput) {
+        combo++;
+
+        int bonus = comboBonus(combo);
+        comboScore += bonus;
+
+        if (combo > maxCombo)
+            maxCombo = combo;
+
+        if (crimaxMode &&
+            result == Cool &&
+            combo >= 100) {
+            stageScore += 200;
+        }
+    }
+    else {
+        combo = 0;
+    }
+
+    stageScore +=
+        baseScore[wrongInput ? 1 : 0][result];
+}
+```
+
+BTL：
+
+```cpp
+void scoreBTLNote(
+    JudgeResult result,
+    bool wrongInput,
+    bool crimaxMode)
+{
+    if (result == Sad)
+        result = None;
+
+    judgementCounts[result]++;
+
+    if (result >= Fine && !wrongInput) {
+        combo++;
+
+        int bonus = comboBonus(combo);
+        comboScore += bonus;
+
+        if (combo > maxCombo)
+            maxCombo = combo;
+
+        if (crimaxMode &&
+            result == Cool &&
+            combo >= 100) {
+            stageScore += 200;
+        }
+    }
+
+    // SAFE / SAD / NONE do NOT reset Combo in BTL.
+
+    stageScore +=
+        baseScore[wrongInput ? 1 : 0][result];
+}
+```
+
+Interlude：
+
+```cpp
+void scoreInterlude(JudgeResult result)
+{
+    if (result >= Fine) {
+        interludeSuccess++;
+        stageScore += 1;
+
+        if (interludeSuccess >= totalInterlude) {
+            stageScore += 39;
+        }
+    }
+}
+```
+
+最终成绩：
+
+```cpp
+int totalScore() const
+{
+    return stageScore + comboScore;
+}
+```
+
+---
+
+# 21. 当前已确认程度
+
+| 项目 | 状态 |
+|---|---|
+| 普通基础分 | 已确认 |
+| Combo 增长条件 | 已确认 |
+| Combo Bonus 精确公式 | 已确认 |
+| 500 分封顶 | 已确认 |
+| Crimax +200 | 已确认 |
+| Interlude +1 | 已确认 |
+| Interlude 全成功 +39 | 已确认 |
+| Total = Stage + Combo | 已确认 |
+| 无结算 Bonus | 已确认 |
+| BTL SAFE 行为 | 已确认 |
+| BTL SAD→0 | 已确认 |
+| BTL Miss 不断 Combo | 已确认 |
+| BTL 不走普通 Gauge | 已确认 |
+| Rank 0~6 条件 | 已确认 |
+| Rank UI 名称 | 已确认 |
+| BreakClear 持久化 | 已确认 |
+| 第二组 COOL=250 用途 | 当前版本不可达 / 疑似遗留 |
+
+---
+
+# 22. 最终结论
+
+MikuFlick2 1.1.5 的原版计分系统可以概括为：
+
+```text
+Note Judgement
+↓
+Base Stage Score
+↓
+正确 FINE / COOL
+→ Combo +1
+→ Combo Bonus
+↓
+Crimax COOL + Combo>=100
+→ +200
+↓
+Interlude
+→ +1 / All Success +39
+↓
+Stage Score + Combo Score
+↓
+Total Score
+```
+
+完整公式：
+
+```text
+TotalScore
+=
+Σ BaseNoteScore
++ Σ CrimaxBonus
++ Σ InterludeBonus
++ Σ ComboBonus
+```
+
+其中：
+
+```text
+BaseNoteScore:
+COOL 300
+FINE 150
+SAFE 50
+SAD 30
+WORST 0
+```
+
+```text
+ComboBonus:
+min(
+    floor((Combo + 5) / 10) × 50,
+    500
+)
+```
+
+```text
+CrimaxBonus:
++200
+only if:
+COOL
+AND Combo >= 100
+AND CrimaxMode
+```
+
+```text
+Interlude:
+Success +1
+All Success +39
+```
+
+从当前逆向结果来看，这套机制已经足够用于现代化版本的原版兼容实现。
+
+建议后续原则：
+
+> 除非实机分数对比出现偏差，否则冻结 `OriginalScoreEngine`，不再修改原版规则。
+
+如果未来需要加入新的 Modern Mode 计分系统，应与：
+
+```text
+Original Score Mode
+```
+
+完全分离，避免污染原版成绩兼容性。
+
+---
+
+*Sample: MikuFlick2 1.1.5 / ARMv7 / cryptid 0*  
+*Reverse-engineering status: score system essentially complete*
+# MikuFlick2 Legacy Asset Notes
+
+> 本文记录从 **MikuFlick2 1.1.5** 中提取的旧版资源、已确认用途，以及这些资源在现代化重构中的计划处理方式。
+>
+> 信息来源包括 **Ghidra 静态分析** 与 **原版实机测试**。
+>
+> 文件名在本文中不区分大小写，实际名称以解包后的文件为准。
+>
+> 尚未确认用途的资源统一标记为 **UNKNOWN / TODO**，不做无证据推测。
+
+## 1. 资源使用原则
+
+现代化版本的目标不是逐像素复制 2012 年的旧 UI，而是：
+
+- 尽量 1:1 复刻原版游戏机制
+- 尽量保留原版音效与 BGM 行为
+- 保留原版视觉语言与关键素材
+- UI 重新适配现代 iPhone / iPad
+- Legacy UI 与 Modern UI 可以共存
+- 原版 Texture Atlas 继续作为资源来源与设计参考
+- 不再需要的旧 iOS 系统资源可以不引入
+
+建议资源与运行时逻辑分层：
+
+```text
+Legacy Assets
+├─ Original Texture Atlas
+├─ Original Sound Effects
+├─ Original BGM
+├─ Original MV / USM
+└─ Original Gameplay Textures
+
+Modern Runtime
+├─ Modern Layout
+├─ Safe Area Adaptation
+├─ High-Resolution Assets
+├─ Modern Rendering
+└─ Original Gameplay Behavior
+```
+
+## 2. Texture Atlas 与 plist
+
+原版大量 UI 使用：
+
+```text
+*.png
++
+*.plist
+```
+
+组成 Texture Atlas，例如：
+
+```text
+UI_tex_02.png
+UI_tex_02.plist
+```
+
+plist 中包含 Sprite 的裁切、尺寸、旋转等信息，因此现代版可以直接解析 plist，而不需要手工切图。
+
+通过 Ghidra 已确认，原版 `TPManager_CreatePlistNames` 会：
+
+```text
+读取 plist
+→ frames
+→ allKeys
+→ 按名称排序
+→ 建立全局 Texture ID
+```
+
+建议现代版转换为：
+
+```text
+Legacy Texture ID
+→ Frame Name
+→ Atlas
+→ Rect
+→ Modern Asset ID
+```
+
+而不是继续在业务代码中直接使用旧 Texture ID 魔法数字。
+
+## 3. TPManager Atlas 顺序
+
+原版 `s_tblTPPlistName` 顺序已确认：
+
+```text
+UI_tex_01
+UI_tex_02
+UI_tex_03
+UI_tex_04
+UI_tex_05
+UI_tex_06
+UI_tex_07
+bg_tex_01
+bg_tex_02
+bg_tex_03
+bg_tex_04
+bg_tex_05
+bg_tex_06
+bg_tex_07
+game_effect_01
+game_tex_01
+game_tex_02
+music_00_01
+thum_01_01
+credits_ja
+ending
+```
+
+现代版可据此构建旧 Texture ID 到资源名的兼容映射。
+
+## 4. 已确认的 Rank 资源映射
+
+通过 `UI_tex_02.plist` 与原版 Texture ID 逻辑已确认：
+
+```text
+Rank 0 → perfect.png
+Rank 1 → clearrank_00.png
+Rank 2 → clearrank_01.png
+Rank 3 → clearrank_02.png
+Rank 4 → clearrank_03.png
+Rank 5 → clearrank_04.png
+Rank 6 → clearrank_05.png
+```
+
+实际 UI：
+
+```text
+Rank 0 → Perfect!
+Rank 1 → S
+Rank 2 → A
+Rank 3 → B
+Rank 4 → C
+Rank 5 → D
+Rank 6 → E
+```
+
+## 5. 加载界面与背景
+
+### `bg_tex_02`
+
+用途：
+
+```text
+选歌界面背景
+Game Mode
+MV Mode
+```
+
+### `bg_tex_03`
+
+用途：
+
+```text
+游戏结算界面背景
+```
+
+### `bg_tex_06`
+
+用途：
+
+```text
+开屏加载界面
+```
+
+### `bg_tex_07`
+
+用途：
+
+```text
+菜单之间切换时出现的 Loading 界面
+```
+
+现代版可保留其视觉概念，但不必复制旧式 Loading 流程。
+
+## 6. App Icon
+
+原版包含大量不同 iOS 时代的 App Icon：
+
+```text
+AppIcon*
+Appleicon_miku_*
+Icon*
+```
+
+其中已有较高分辨率版本，例如：
+
+```text
+Appleicon_miku_1024x1024_Flatdesign.png
+```
+
+现代版建议：
+
+```text
+原版高分辨率 Logo
+→ 清理 / 调整
+→ 生成现代 AppIcon Asset Catalog
+```
+
+## 7. BGM
+
+### `BGM01.caf`
+
+```text
+主菜单 BGM
+```
+
+### `BGM02.caf`
+
+```text
+UNKNOWN
+```
+
+暂未找到明确应用层用途。可能与旧 Twitter / 分享流程有关，但目前证据不足。
+
+### `BGM03.caf`
+
+```text
+设置菜单
+商店
+普通得分结果界面
+```
+
+### `BGM04.caf`
+
+```text
+游戏达到 AP / Perfect 时的特殊结算 BGM
+```
+
+这里 AP 指：
+
+```text
+全部 Note = COOL
+```
+
+即结果 Rank：
+
+```text
+Perfect!
+```
+
+### `BGM05.caf`
+
+```text
+普通游戏结算 BGM
+```
+
+## 8. 曲包 / USM
+
+原版大量歌曲内容使用：
+
+```text
+*.usm
+```
+
+例如：
+
+```text
+cloverclub.usm
+hajimete_no_oto.usm
+hatsune_miku_no_gekisyou.usm
+just_be_friends.usm
+koi_wa_sensou.usm
+magnet.usm
+promise.usm
+roshin_yuukai.usm
+taiyoumirai_no_quartet.usm
+ura_omote_lovers.usm
+```
+
+USM 中不仅包含正式游戏 MV，也包含选歌界面使用的短版试听内容。
+
+因此现代选歌系统必须支持：
+
+```text
+选择歌曲
+↓
+播放对应 Preview
+```
+
+## 9. Legacy Song Select UI
+
+原版采用类似经典 iPod / Cover Flow 的左右滑动专辑设计：
+
+```text
+左右滑动专辑
+↓
+当前歌曲位于中心
+↓
+播放该歌曲 Preview
+```
+
+现代版可以保留为 `Legacy UI`。
+
+## 10. Modern SEKAI-style Song Select UI
+
+Modern UI 可以采用类似 Project SEKAI 的歌曲列表模式：
+
+```text
+点击歌曲
+↓
+选中歌曲
+↓
+播放该歌曲 Preview
+```
+
+两套 UI 可以共用同一个 `SongPreviewController`。
+
+## 11. 游戏图像资源
+
+### `game_tex_*`
+
+包含核心玩法相关材质，例如：
+
+- 9 键 Flick 输入
+- Note
+- Gameplay UI
+- 其他核心交互元素
+
+### `game_effect_*`
+
+包含：
+
+- 判定效果
+- Interlude 单键小游戏
+- Gameplay Effects
+
+这些资源与 Gameplay Engine 关系紧密，应优先保留并分析。
+
+## 12. Interlude
+
+原版存在间奏单键小游戏：
+
+```text
+Interlude Mode
+```
+
+玩法：
+
+```text
+间奏期间出现单个按键
+↓
+玩家按节奏点击
+↓
+FINE / COOL 视为成功
+```
+
+相关资源位于：
+
+```text
+game_tex_*
+game_effect_*
+```
+
+现代版应继续支持该机制。
+
+## 13. Help 图片
+
+包括：
+
+```text
+help_01.png
+help_02.png
+```
+
+这些主要用于解释原版 UI 和操作。
+
+由于现代版将重新设计 UI：
+
+```text
+不计划直接引入
+```
+
+如需教程，应重新制作符合现代 UI 的 Help / Tutorial。
+
+## 14. Launch Images
+
+例如：
+
+```text
+LaunchImage*
+```
+
+属于旧版 iOS 静态 Launch Image 系统。现代 iOS 不再需要按这种方式维护启动图，因此不直接引入，可仅作为视觉参考。
+
+## 15. 原版启动 Logo
+
+包括：
+
+```text
+logo_sega.png
+logo_cri.png
+logo_crypton.png
+```
+
+这些是原版开屏流程中的 Logo。
+
+现代化版本目前计划：
+
+```text
+不引入
+```
+
+## 16. 日文键盘资源
+
+包括：
+
+```text
+mf_hiragana_*
+mf_katakana_*
+```
+
+用途：
+
+```text
+原版 Flick 日文键盘材质
+```
+
+如果现代版采用新的输入 UI，则不需要直接引入，但仍可作为设计参考。
+
+## 17. Ending / 通关彩蛋
+
+相关资源：
+
+```text
+ending.png
+ending.plist
+ending.usm
+```
+
+属于原版通关后的彩蛋内容。
+
+现代版计划改为：
+
+```text
+Settings
+→ Extras / Legacy Content
+→ Ending
+```
+
+允许玩家手动播放。
+
+## 18. Credits
+
+包括：
+
+```text
+credits_en.png
+credits_ja.png
+credits_ja.plist
+```
+
+属于原版 Credits / 版权信息。是否加入现代版，应根据最终发布方式与版权信息需求决定。
+
+## 19. 音效
+
+### `Na_Title_A_03_keep.caf`
+
+已确认用途：
+
+```text
+游戏启动后
+主菜单 BGM 播放前的启动音效
+```
+
+计划保留。
+
+## 20. 已确认的 SE 映射
+
+### `SE01_03.caf`
+
+```text
+SAFE 判定音
+```
+
+### `SE01.caf`
+
+```text
+进入 Rainbow / Crimax 状态的 Note 判定音
+```
+
+### `SE02_01.caf`
+
+```text
+Pause
+菜单按键
+```
+
+### `SE02.caf`
+
+```text
+Interlude 小游戏成功交互提示音
+```
+
+### `SE03.caf`
+
+```text
+SAD 判定音
+```
+
+### `SE04.caf`
+
+```text
+FINE / COOL 判定音
+```
+
+### `SE05_01.caf`
+
+```text
+结算界面结果出现提示音
+```
+
+### `SE09.caf`
+
+```text
+菜单返回键音效
+```
+
+## 21. 尚未确认的 SE
+
+目前以下文件尚未完整确认用途：
+
+```text
+SE01_01.caf
+SE04_01.caf
+SE04v2.caf
+SE05.caf
+SE06.caf
+SE07.caf
+SE08.caf
+SE10.caf
+SE11.caf
+SE12.caf
+SE13.caf
+SE14.caf
+SE15.caf
+SE16.caf
+```
+
+在确认 Ghidra 调用点或实机行为前：
+
+```text
+不要猜测用途
+```
+
+统一标记为：
+
+```text
+UNKNOWN / TODO
+```
+
+## 22. UI Texture Atlas
+
+包括：
+
+```text
+UI_tex_01.png
+UI_tex_01.plist
+...
+UI_tex_07.png
+UI_tex_07.plist
+```
+
+此外还存在：
+
+```text
+UI_tex_08.png
+UI_tex_09.png
+```
+
+现代版原则：
+
+> 可以参考原版设计，但不要求 1:1 复制原版 UI 布局。
+
+原因包括：
+
+- 原版针对旧 iPhone 分辨率设计
+- 现代设备宽高比不同
+- Safe Area
+- Dynamic Island
+- iPad
+- Retina / 高 DPI
+- 横向空间利用方式不同
+
+应尽量保留：
+
+```text
+视觉语言
+按钮风格
+动画风格
+原版资源
+```
+
+但重新设计：
+
+```text
+Layout
+Anchor
+Safe Area
+HUD Position
+Spacing
+Touch Region
+```
+
+## 23. Legacy UI 与 Modern UI
+
+### Legacy UI
+
+目标：
+
+```text
+尽量接近原版布局
+```
+
+用途：
+
+- 怀旧
+- 原版对照
+- 回归测试
+- 机制验证
+
+### Modern UI
+
+目标：
+
+```text
+适配现代 iPhone / iPad
+```
+
+可以重新安排：
+
+- HUD
+- 选歌界面
+- 设置
+- Result
+- Safe Area
+- 横向空间
+
+但不改变：
+
+```text
+Gameplay Timing
+Judgement
+Score Engine
+Flick Mechanics
+Crimax
+Interlude
+```
+
+## 24. AI Upscale
+
+原版部分 UI 分辨率较低，可进行：
+
+```text
+2x / 4x AI Upscale
+```
+
+### 推荐 AI Upscale
+
+- 插画
+- 背景
+- 角色图片
+- 部分游戏特效
+
+### 更适合重新绘制
+
+- 字体
+- 数字
+- 几何按钮
+- 线条
+- UI Frame
+- Rank 字母
+
+### 原则
+
+AI Upscale 不应：
+
+```text
+改变原始形状
+改变 UI 比例
+增加不存在的装饰
+改变 Note 可读性
+```
+
+AI Upscale 应属于 `Asset Restoration`，而不是 `UI Redesign`。
+
+## 25. 推荐现代资源流水线
+
+```text
+Original IPA
+↓
+Extract
+↓
+Read PNG + plist
+↓
+Build Legacy Asset Manifest
+↓
+Classify Assets
+├─ Gameplay
+├─ UI
+├─ Effect
+├─ Background
+├─ Text
+└─ Illustration
+↓
+Optional 4x Upscale / Redraw
+↓
+Modern Atlas
+↓
+Modern Game
+```
+
+建议永久保留：
+
+```text
+assets/original/
+```
+
+不要覆盖原资源。
+
+例如：
+
+```text
+assets/
+├─ original/
+├─ extracted/
+├─ restored/
+├─ modern/
+└─ manifests/
+```
+
+## 26. 当前优先级
+
+优先研究：
+
+```text
+game_tex_*
+game_effect_*
+SE*.caf
+BGM*.caf
+UI_tex_*.plist
+UI_tex_*.png
+USM Preview
+```
+
+低优先级 / 暂不引入：
+
+```text
+help_*
+LaunchImage*
+logo_sega
+logo_cri
+logo_crypton
+mf_hiragana_*
+mf_katakana_*
+```
+
+独立保留：
+
+```text
+ending.*
+credits_*
+```
+
+## 27. 发布与版权注意
+
+这些资源来自原版商业游戏。
+
+建议：
+
+- GitHub 仓库优先公开重构代码、工具、资源映射和文档
+- 不默认将原版商业图片、音频、歌曲、MV 一并公开分发
+- 如需公开项目，可考虑让用户从自己持有的原版 IPA 本地导入资源
+- 开发阶段可以使用已提取资源作为兼容性与视觉参考
+
+推荐做一个：
+
+```text
+OriginalAssetImporter
+```
+
+流程：
+
+```text
+用户选择原版 IPA
+↓
+校验版本
+↓
+本地提取资源
+↓
+建立现代 Asset Pack
+```
+
+## 28. 总结
+
+原版资源现代化的目标不是：
+
+```text
+把旧 App 画面整体放大
+```
+
+而是：
+
+```text
+提取原版资产
++
+理解原版用途
++
+保留 Gameplay Identity
++
+重新建立现代 Layout
+```
+
+核心原则：
+
+> 游戏机制尽量忠实于原版。  
+> UI 布局可以针对现代设备重新设计。  
+> 原版资源应作为兼容性与视觉参考源保留。  
+> 对未确认资源用途不做无依据猜测。
