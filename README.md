@@ -2,26 +2,35 @@
 
 在 64 位 iPhone 和 iPad 上重现 Miku Flick 02 的假名滑动音游与 MV 播放。沿用原版谱面、影片、图片和提示音，提供原版风格的 Legacy 界面及两套现代界面，并加入多语言字幕、进度拖动和直接导入资源包。
 
-当前发布为 **v1.1.6（build 8）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 17 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。工程内置 11 首基础歌曲，另外六首的影片需要导入 Mov_11／Mov_99 资源包。
+当前发布为 **v1.1.6（build 10）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 17 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。工程内置 11 首基础歌曲，另外六首的影片需要导入 Mov_11／Mov_99 资源包。
 
 ## 下载与运行
 
-[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r3)。请选择适合你的文件：
+[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r4)。请选择适合你的文件：
 
 | 下载 | 用途 |
 |---|---|
-| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/MikuFlick64-1.1.6-build8-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
-| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
-| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
-| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/SHA256SUMS.txt) | 核对下载文件是否完整。 |
+| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/MikuFlick64-1.1.6-build10-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
+| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
+| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
+| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/SHA256SUMS.txt) | 核对下载文件是否完整。 |
 
 **系统要求：**iOS／iPadOS 17.0 或更高版本、arm64 设备。iPhone Duo 的专用折叠形态适配需要 iOS 27.1 或更高版本；真机折叠切换尚未测试。
 
 **真机安装：**下载 IPA，导入你使用的签名工具，用自己的开发者账号或证书签名，再安装到设备。发布包没有开发团队签名；本轮尚未验证用户签名后的真机安装和运行。
 
-**从源码运行：**解压工程，用 Xcode 打开 `MikuFlick64.xcodeproj`，选择 `MikuFlick64` Scheme 和目标设备后按 ⌘R。本轮使用 Xcode 27.2 beta 2（27B5028f）构建；真机运行需在 Signing 中选择自己的开发团队，模拟器无需开发者账号。
+**从源码运行：**解压工程，用 Xcode 打开 `MikuFlick64.xcodeproj`，选择 `MikuFlick64` Scheme 和目标设备后按 ⌘R。本轮使用 Xcode 27.2 beta 2构建；真机运行需在 Signing 中选择自己的开发团队，模拟器无需开发者账号。
 
-已完成本轮模拟器布局冒烟检查；全曲手动通关、真实设备触摸与音频表现仍需人工验证。已执行项目与待测范围见 [验证记录](VALIDATION.md)，人工测试事项见 [交接说明](HANDOFF.md)。
+本轮在 iPhone Duo 模拟器运行验证启动音频；此前 build 8 已完成三台模拟器布局冒烟检查。全曲手动通关、真实设备触摸与音频表现仍需人工验证。已执行项目与待测范围见 [验证记录](VALIDATION.md)，人工测试事项见 [交接说明](HANDOFF.md)。
+
+## build 10：开屏与启动音频（2026-10-06）
+
+- 当前包名为 `com.sbga.MikuFlick02`，版本 `1.1.6`，构建号 `10`，完整内置 11 首基础歌曲。
+- 开屏依次显示 SBGA、Crypton、CRIWARE，每张停留 1 秒，可点击进入下一张。SBGA 页面播放原 SEGA 提示音；标志保持等比并居中。
+- 每次启动第一次进入主界面时播放 `Na_Title_A_03_keep.caf`，等待实际播放完成后再启动 BGM。修复首次教程请求 BGM03 导致音乐提前播放的问题；语音期间所有音乐请求排队，返回前台继续播放。
+- iPhone Duo 模拟器分别复现旧问题并验证首次教程和正常启动：最终运行中 BGM 在语音完成回调后 25 ms 启动。音频日志与测试范围见 [验证记录](VALIDATION.md)。本轮没有重新做全机型或全曲测试；前三机型布局记录保留在历史章节。
+
+包名从 `jp.sbga.mikuflick` 改为 `com.sbga.MikuFlick02` 后，旧应用成绩与导入资源不会自动迁入新应用。请保留原应用，按需在新应用重新导入曲包。
 
 ## build 8：ProMotion 与 Developer 性能工具（2026-10-06）
 

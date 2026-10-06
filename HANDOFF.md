@@ -1,14 +1,14 @@
 # 测试与交付说明
 
-2026-10-06，v1.1.6（build 8）测试版。新增 Developer 自动打歌、原版判定多边形与连击特效，修正 gauge 比例、主页及音量对齐；Legacy 间奏隐藏 gauge 并居中 TAP。普通 iPhone 固定竖屏，Duo 外屏及 iPad 保留横屏。三台模拟器测试和限制详见 [验证记录](VALIDATION.md)。
+2026-10-06，v1.1.6（build 10）测试版。当前新增三张开屏和标题语音优先播放；历史版本新增 Developer 自动打歌、原版判定多边形与连击特效，修正 gauge 比例、主页及音量对齐；Legacy 间奏隐藏 gauge 并居中 TAP。普通 iPhone 固定竖屏，Duo 外屏及 iPad 保留横屏。三台模拟器测试和限制详见 [验证记录](VALIDATION.md)。
 
 ## 下载与运行
 
-[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r3)提供以下文件：
+[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r4)提供以下文件：
 
-- [MikuFlick64-1.1.6-build8-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/MikuFlick64-1.1.6-build8-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
-- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
-- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/SHA256SUMS.txt)：下载文件校验清单。
+- [MikuFlick64-1.1.6-build10-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/MikuFlick64-1.1.6-build10-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
+- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
+- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/SHA256SUMS.txt)：下载文件校验清单。
 
 真机 IPA 的系统要求为 iOS／iPadOS 17.0 或更高版本、arm64。iPhone Duo 的专用折叠形态 API 要求 iOS 27.1 或更高版本，真机折叠切换尚未测试。
 
@@ -16,7 +16,13 @@
 
 IPA 是未签名的设备构建，当前没有可用的项目开发团队签名。本轮尚未验证用户签名后的真机安装、触摸或音频表现；从源码运行到真机也需在 Xcode Signing 选择自己的开发团队。此前的交付包保留供对照。
 
-## 本轮变更
+## build 10 本轮变更
+
+包名 `com.sbga.MikuFlick02`，1.1.6 build 10。新增 SBGA → Crypton → CRIWARE 开屏，每张 1 秒、点击跳下一张；SBGA 播放 SEGA 音效。主界面先完整播放标题语音，再启动 BGM；所有提前音乐请求统一排队。Duo 模拟器已复现并修复首次教程提前播放 BGM03，最终正常启动 BGM 比标题语音完成回调晚 25 ms。日志见 VALIDATION.md，本轮未重新进行三机型布局测试。
+
+`jp.sbga.mikuflick` 的成绩与曲包不会自动迁移到新包名，请保留旧应用并自行重新导入需要的曲包。
+
+## 历史变更
 
 1.1.6 新增：Bundle ID `jp.sbga.mikuflick`；全部六语言难度、判定和 FAST／LATE 保持英语；打包校验明确验证完整的 11 首内置免费歌曲。新包名的首次启动、选歌、媒体播放、失败结算已在 iPhone Air 模拟器检查，全部六语言的英文术语通过逻辑测试。旧包名的数据不会自动迁入新沙盒。
 
@@ -59,7 +65,7 @@ RAR4／RAR5 原生提取此前通过本机样本测试；样本测试不能替�
 
 Developer 默认关闭。开启路径：OPTIONS → DISPLAY → Developer，再返回 OPTIONS → DEVELOPER → Autoplay。测试成绩不保存。原版判定图形开关位于 DISPLAY，会禁用 FAST／LATE 的显示。
 
-本地 IPA：`../MikuFlick64-1.1.6-r2/MikuFlick64-1.1.6-build8-unsigned.ipa`。
+本地 IPA：`../MikuFlick64-1.1.6-r4/MikuFlick64-1.1.6-build10-unsigned.ipa`。
 
 
 ## build 8 性能工具

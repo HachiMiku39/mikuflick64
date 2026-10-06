@@ -1,3 +1,27 @@
+# 1.1.6 build 10 — startup audio order
+
+The first-run tutorial's `onAppear` requested BGM03 before the home screen requested the title announcement. The previous gate only started on the home screen, allowing tutorial music to play early.
+
+MenuMusic now gates every music request from application launch until the title announcement's AVAudioPlayer completion callback. The first visible home screen replaces the queued tutorial music with BGM01. Requests made during the voice remain queued. Background suspension also pauses the title voice.
+
+Actual iPhone Duo simulator runs:
+
+- Before fix, forced first-run tutorial: HOME at uptime 30408.455; BGM03 START at 30408.592, before the title voice started. Reproduced.
+- After fix, forced first-run tutorial: BGM03 DEFER at 30553.379; TITLE START at 30557.946 (source duration 2.403 seconds); TITLE END at 30560.383; BGM01 START at 30560.400. No BGM START before TITLE END. Passed.
+- Final source with normal startup, compiled and actually launched: HOME at 30645.362; TITLE START at 30646.434; TITLE END at 30648.873; BGM01 START at 30648.898. The voice ran for 2.439 seconds; BGM started 25 milliseconds after the completion callback. Passed.
+- The tutorial replay and timed dismissal were temporary test setup; both are removed from the final source. User preferences, scores, and songs were not reset.
+
+Debug builds retain MenuAudio timestamps for diagnosing playback order; release builds do not print them. Device archive and IPA packaging are recorded below.
+## build 10 device archive and packaging
+
+Xcode native Archive succeeded on 2026-10-06 at 18:48. Organizer shows iOS App Archive, arm64, com.sbga.MikuFlick02, 1.1.6 (10). IPA packaging independently checked the Mach-O iOS device platform, unsigned status, source-matching SHA-256 for all 11 built-in movies/charts/previews/covers/titles and launch logos/audio, 85 subtitle tracks, and ZIP CRC.
+
+IPA: 421405375 bytes; SHA-256 `9707e22fa59291e8ade2e5c734b8e4adf60c7b23f72805d75ed346c95e96e40f`. Requires user signing for device installation; no signed physical-device test in this round.
+
+
+
+---
+
 # Miku Flick 64 验证记录
 
 初次验证：2026-10-04；补充验证：2026-10-05，Asia/Shanghai。
