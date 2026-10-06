@@ -1,14 +1,14 @@
 # 测试与交付说明
 
-2026-10-06，v1.1.6（build 6）测试版。新增 Developer 自动打歌、原版判定多边形与连击特效，修正 gauge 比例、主页及音量对齐；Legacy 间奏隐藏 gauge 并居中 TAP。普通 iPhone 固定竖屏，Duo 外屏及 iPad 保留横屏。三台模拟器测试和限制详见 [验证记录](VALIDATION.md)。
+2026-10-06，v1.1.6（build 8）测试版。新增 Developer 自动打歌、原版判定多边形与连击特效，修正 gauge 比例、主页及音量对齐；Legacy 间奏隐藏 gauge 并居中 TAP。普通 iPhone 固定竖屏，Duo 外屏及 iPad 保留横屏。三台模拟器测试和限制详见 [验证记录](VALIDATION.md)。
 
 ## 下载与运行
 
-[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r2)提供以下文件：
+[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r3)提供以下文件：
 
-- [MikuFlick64-1.1.6-build6-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r2/MikuFlick64-1.1.6-build6-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
-- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r2/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
-- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r2/SHA256SUMS.txt)：下载文件校验清单。
+- [MikuFlick64-1.1.6-build8-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/MikuFlick64-1.1.6-build8-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
+- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
+- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/SHA256SUMS.txt)：下载文件校验清单。
 
 真机 IPA 的系统要求为 iOS／iPadOS 17.0 或更高版本、arm64。iPhone Duo 的专用折叠形态 API 要求 iOS 27.1 或更高版本，真机折叠切换尚未测试。
 
@@ -59,4 +59,19 @@ RAR4／RAR5 原生提取此前通过本机样本测试；样本测试不能替�
 
 Developer 默认关闭。开启路径：OPTIONS → DISPLAY → Developer，再返回 OPTIONS → DEVELOPER → Autoplay。测试成绩不保存。原版判定图形开关位于 DISPLAY，会禁用 FAST／LATE 的显示。
 
-本地 IPA：`../MikuFlick64-1.1.6-r2/MikuFlick64-1.1.6-build6-unsigned.ipa`。
+本地 IPA：`../MikuFlick64-1.1.6-r2/MikuFlick64-1.1.6-build8-unsigned.ipa`。
+
+
+## build 8 性能工具
+
+Developer 子页新增 Performance overlay 和 Apple Metal HUD，默认均关闭。悬浮窗显示本应用 CPU／RAM／UI FPS；100% CPU 表示一个核心。点击标题收起，× 关闭，窗外仍可点按游戏；进入后台停止采样，前台重建基线。关闭 Developer 会同步关闭 Autoplay 与两种性能工具。
+
+Apple Metal HUD 开关改变后需重启。当前 SwiftUI／AVPlayer 不保证提供支持的 Metal 表面；本轮没有观测到官方 GPU 面板，GPU 百分比显示 —，不能作为 GPU 实测结果。UI FPS 是显示回调频率，不能代替 GPU 渲染 FPS 或影片帧率。模拟器指标不能代表真机性能。GPU 深入分析用 Xcode Instruments → Metal System Trace。
+
+已检查 Air 游戏、暂停、后台恢复，以及 iPad 横竖屏、Duo 外屏／展开横竖和 Book 页面安全区；自动拖动观测到零位移，未计入通过。请在签名安装后的设备上复核真实触摸拖动、窗口移动后的形态切换、长期采样与 GPU 工具表现。
+
+## ProMotion（build 8）
+
+最高请求 120 Hz，实际随屏幕能力及系统调度降低。iPhone 启用高刷新 Info.plist 开关；游戏画面时钟由固定 60 Hz 的播放器观察器改为显示同步回调，每次仍读 AVPlayer 媒体时钟，30 Hz 谱面判定不变，影片不补帧。暂停／拖动／后台停止更新；恢复重新配置。HUD 的 UI FPS 是显示回调频率。
+
+真机验收：在支持 ProMotion 的 iPhone／iPad 开启 Performance overlay，进入游戏查看 UI FPS（最高 120），切换低电量、暂停／恢复、后台／前台；分别检查普通手动输入及自动打歌的判定、轨道、音视频同步。模拟器检查不能代替真机 120 Hz 验证。
