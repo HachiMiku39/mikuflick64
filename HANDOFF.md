@@ -1,14 +1,14 @@
 # 测试与交付说明
 
-2026-10-06，v1.1.6（build 10）测试版。当前新增三张开屏和标题语音优先播放；历史版本新增 Developer 自动打歌、原版判定多边形与连击特效，修正 gauge 比例、主页及音量对齐；Legacy 间奏隐藏 gauge 并居中 TAP。普通 iPhone 固定竖屏，Duo 外屏及 iPad 保留横屏。三台模拟器测试和限制详见 [验证记录](VALIDATION.md)。
+2026-10-06，v1.1.6（build 11）测试版。当前新增并行曲包下载、文件夹导入和 71 首五语言字幕；保留三张开屏和标题语音优先播放；历史版本新增 Developer 自动打歌、原版判定多边形与连击特效，修正 gauge 比例、主页及音量对齐；Legacy 间奏隐藏 gauge 并居中 TAP。普通 iPhone 固定竖屏，Duo 外屏及 iPad 保留横屏。三台模拟器测试和限制详见 [验证记录](VALIDATION.md)。
 
 ## 下载与运行
 
-[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r4)提供以下文件：
+[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r5)提供以下文件：
 
-- [MikuFlick64-1.1.6-build10-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/MikuFlick64-1.1.6-build10-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
-- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
-- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/SHA256SUMS.txt)：下载文件校验清单。
+- [MikuFlick64-1.1.6-build11-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/MikuFlick64-1.1.6-build11-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
+- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
+- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/SHA256SUMS.txt)：下载文件校验清单。
 
 真机 IPA 的系统要求为 iOS／iPadOS 17.0 或更高版本、arm64。iPhone Duo 的专用折叠形态 API 要求 iOS 27.1 或更高版本，真机折叠切换尚未测试。
 
@@ -16,9 +16,13 @@
 
 IPA 是未签名的设备构建，当前没有可用的项目开发团队签名。本轮尚未验证用户签名后的真机安装、触摸或音频表现；从源码运行到真机也需在 Xcode Signing 选择自己的开发团队。此前的交付包保留供对照。
 
-## build 10 本轮变更
+## build 11 本轮变更
 
-包名 `com.sbga.MikuFlick02`，1.1.6 build 10。新增 SBGA → Crypton → CRIWARE 开屏，每张 1 秒、点击跳下一张；SBGA 播放 SEGA 音效。主界面先完整播放标题语音，再启动 BGM；所有提前音乐请求统一排队。Duo 模拟器已复现并修复首次教程提前播放 BGM03，最终正常启动 BGM 比标题语音完成回调晚 25 ms。日志见 VALIDATION.md，本轮未重新进行三机型布局测试。
+包名 `com.sbga.MikuFlick02`，1.1.6 build 11。新增 HTTPS ZIP／RAR 和 GitHub Release 下载列表，可并行启动，逐项显示速度与进度；暂停、恢复、重试、取消及移除结束记录。完成后串行调用真实安装流程，下载原件保留在 `Documents/Downloads`，从系统“文件”应用管理。重启保留历史，下载只保证前台运行，续传取决于服务器支持。
+
+通过系统文件选择器导入 ZIP／RAR 或整个 InstallData／Mov 文件夹，不要求系统级完整文件访问。网络保留 HTTPS 保护。Duo 实际导入 20 包／60 首 DLC，曲库合计 71 首；71 首均有五语言自动匹配译文。IPA 只带 11 首内置曲目，DLC 音视频与下载原包不发布。
+
+译文按用户要求直接写入后批量检查，不逐首打歌或播放验收。详细统计、真实 ZIP／RAR 并行下载与 SHA-256 记录见 VALIDATION.md 和发布附件 DLC-Download-QA.zip。
 
 `jp.sbga.mikuflick` 的成绩与曲包不会自动迁移到新包名，请保留旧应用并自行重新导入需要的曲包。
 
@@ -51,7 +55,7 @@ r3 新增：iPhone 竖屏 Gauge 加宽、Legacy Logo 放大、选歌标题与返
 
 分别切换英语、日语、简体中文、法语、西班牙语和韩语（`en`／`ja`／`zh`／`fr`／`es`／`ko`）。日语仅显示原文，其他五种语言检查 MV 日语原文与译文第二行、横屏歌词侧栏以及拖动进度后的同步；缺少译文的句子只显示原文。
 
-字幕覆盖当前 17 首曲目：每种翻译语言 479 句，五种译文共 85 个字幕轨道、2395 条译文。新增法语、西班牙语和韩语字幕标明为本项目 AI 翻译。额外曲包的影片仍需自行导入，模拟器沙盒中已安装的影片不随源码交付。
+字幕覆盖当前 71 首曲目：每种翻译语言 2008 句，五种译文共 355 个字幕轨道、10,040 条译文。本轮新增译文标明为本项目 AI 翻译。额外曲包的影片仍需自行导入，模拟器沙盒中已安装的影片不随源码交付。
 
 `MUSIC SELECT` 和 `OPTIONS` 保持固定大写英语，使用 OCR-A 字体；其余动态英文、法语、西班牙语及数字使用 Futura-Medium，动态中文使用苹方，韩文使用 iOS 系统韩文字体。全部六种语言中的判定、难度分类和 FAST／LATE 保留英语；素材内的文字保持原图。
 
@@ -59,13 +63,13 @@ r3 新增：iPhone 竖屏 Gauge 加宽、Legacy Logo 放大、选歌标题与返
 
 用户提供的 Mov_99.zip 此前已在 iPad 完整安装，三首新歌元数据、谱面与双音轨文件通过检查。这是此前的安装结果，不等于本轮在全部设备重新安装通过。可继续检查三首 MV、伴奏、试听、Playlist／Loop 及重启后曲库。
 
-RAR4／RAR5 原生提取此前通过本机样本测试；样本测试不能替代实际 RAR 曲包在 iOS 上的完整安装验证，仍需人工补测。
+RAR4／RAR5 原生提取此前通过本机样本测试；build 11 在 Duo 模拟器实际从 GitHub 下载 Mov_98.rar 并完整安装。物理设备上的安装仍未验证。
 
 帮助有九章、六种语言；旧商店购买内容改为自助导入教程，并删除随机播放说明，所有界面统一用 MV。实际验证项目、布局冒烟检查结果和未覆盖范围见 `VALIDATION.md`。
 
 Developer 默认关闭。开启路径：OPTIONS → DISPLAY → Developer，再返回 OPTIONS → DEVELOPER → Autoplay。测试成绩不保存。原版判定图形开关位于 DISPLAY，会禁用 FAST／LATE 的显示。
 
-本地 IPA：`../MikuFlick64-1.1.6-r4/MikuFlick64-1.1.6-build10-unsigned.ipa`。
+本地 IPA：`../MikuFlick64-1.1.6-r5/MikuFlick64-1.1.6-build11-unsigned.ipa`。
 
 
 ## build 8 性能工具

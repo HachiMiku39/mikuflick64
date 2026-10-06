@@ -2,18 +2,18 @@
 
 在 64 位 iPhone 和 iPad 上重现 Miku Flick 02 的假名滑动音游与 MV 播放。沿用原版谱面、影片、图片和提示音，提供原版风格的 Legacy 界面及两套现代界面，并加入多语言字幕、进度拖动和直接导入资源包。
 
-当前发布为 **v1.1.6（build 10）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 17 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。工程内置 11 首基础歌曲，另外六首的影片需要导入 Mov_11／Mov_99 资源包。
+当前发布为 **v1.1.6（build 11）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 71 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。IPA 完整内置 11 首基础歌曲；额外 60 首 DLC 的影音不随包发布，导入对应曲包后自动显示译文。
 
 ## 下载与运行
 
-[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r4)。请选择适合你的文件：
+[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r5)。请选择适合你的文件：
 
 | 下载 | 用途 |
 |---|---|
-| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/MikuFlick64-1.1.6-build10-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
-| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
-| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
-| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r4/SHA256SUMS.txt) | 核对下载文件是否完整。 |
+| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/MikuFlick64-1.1.6-build11-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
+| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
+| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
+| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/SHA256SUMS.txt) | 核对下载文件是否完整。 |
 
 **系统要求：**iOS／iPadOS 17.0 或更高版本、arm64 设备。iPhone Duo 的专用折叠形态适配需要 iOS 27.1 或更高版本；真机折叠切换尚未测试。
 
@@ -21,7 +21,18 @@
 
 **从源码运行：**解压工程，用 Xcode 打开 `MikuFlick64.xcodeproj`，选择 `MikuFlick64` Scheme 和目标设备后按 ⌘R。本轮使用 Xcode 27.2 beta 2构建；真机运行需在 Signing 中选择自己的开发团队，模拟器无需开发者账号。
 
-本轮在 iPhone Duo 模拟器运行验证启动音频；此前 build 8 已完成三台模拟器布局冒烟检查。全曲手动通关、真实设备触摸与音频表现仍需人工验证。已执行项目与待测范围见 [验证记录](VALIDATION.md)，人工测试事项见 [交接说明](HANDOFF.md)。
+本轮在 iPhone Duo 模拟器实际导入 20 个原版曲包，检查 60 首 DLC 的媒体与谱面，并验证两个 GitHub ZIP／RAR 并行下载及自动安装；此前 build 8 已完成三台模拟器布局冒烟检查。全曲手动通关、真实设备触摸与音频表现仍需人工验证。已执行项目与待测范围见 [验证记录](VALIDATION.md)，人工测试事项见 [交接说明](HANDOFF.md)。
+
+## build 11：曲包下载与自动歌词翻译（2026-10-06）
+
+- 包名 `com.sbga.MikuFlick02`，版本 `1.1.6`，构建号 `11`。发布包保留 11 首内置免费歌曲，不捆绑 DLC 影音或测试用曲包。
+- 资源包页面增加下载列表，接受 HTTPS ZIP／RAR 直链和 GitHub Release 页面，可同时启动多个任务，分别显示速度、进度与状态，支持暂停、继续、重试、取消和移除已结束记录。
+- 下载完成后自动排队安装。多个网络任务可并行，媒体转换和注册串行执行，避免冲突。下载的原压缩包保存在应用 `Documents/Downloads`，可从系统“文件”应用管理；下载历史重启后保留。
+- 增加系统文件夹选择导入，可选整个 `InstallData` 或单个 `Mov_<编号>`。应用只读取用户选择的资源；联网使用 HTTPS，保留系统传输安全保护。
+- 71 首歌 × 五种译文语言，共 355 份字幕文件、10,040 条译文。导入已覆盖的 DLC 后自动匹配，无需再单独下载翻译文件。日本语仍只显示原文。
+- Duo 上实际完成 20 个原版目录、60 首 DLC 导入；GitHub 的 `Mov_1.zip` 与 `Mov_98.rar` 并行下载、暂停续传、404 错误及自动安装均有运行记录。译文按用户要求一次批量核对，不逐首进入游戏测试。
+
+下载在应用处于前台时推进；本版不承诺应用退出或系统挂起后继续后台下载。暂停续传还取决于服务器是否支持恢复。完整验证范围见 [VALIDATION.md](VALIDATION.md)。
 
 ## build 10：开屏与启动音频（2026-10-06）
 
@@ -97,7 +108,7 @@
 
 ## 下载与安装资源包
 
-在主菜单 RESOURCE PACK INPUT 打开 [资源包下载页](https://github.com/HachiMiku39/mikuflick02_soundpack/releases/tag/pack)，将 ZIP／RAR 保存到系统“文件”应用，再回到游戏选择“导入 ZIP / RAR”。也可从“文件”应用将压缩包分享给 Miku Flick 64。
+在主菜单 RESOURCE PACK INPUT 打开“下载列表”，粘贴 HTTPS ZIP／RAR 直链或 GitHub Release 页面。内置 [资源包发布页](https://github.com/HachiMiku39/mikuflick02_soundpack/releases/tag/pack) 入口列出原版 `Mov_<编号>` 曲包，点击即可加入任务。下载后自动安装；也可选择“导入 ZIP / RAR”或“导入文件夹”，从系统“文件”应用选择已有资源，或把压缩包分享给 Miku Flick 64。
 
 应用内置 ZIP、RAR4、RAR5 解压，读取 USM 的 CuePoint 数据，在设备内将 MPEG-1 视频和 ADX 音频转换为 H.264 与双 AAC 音轨，并自动注册歌曲。安装页显示解压、校验、逐曲处理和注册阶段。
 
@@ -125,9 +136,9 @@ USM 包含视频、音轨、谱面和歌词；PNG 包含封面与标题图集；
 
 ## 歌词翻译
 
-已提供 11 首基础歌曲和 Mov_11／Mov_99 六首歌曲，共 17 首的五种语言译文。每种语言覆盖 479 条不同的游戏歌词 cue，总计 85 份 JSON、2395 条译文。译文与完整歌曲音源可能存在段落差异，以游戏实际 cue 为准。
+已提供 11 首基础歌曲与用户提供的 20 个曲包中的 60 首 DLC，共 71 首的五种语言译文。每种语言覆盖 2008 条不同的游戏歌词 cue，总计 355 份 JSON、10,040 条译文。DLC 影音需自行导入，安装后自动显示对应语言字幕。译文与完整歌曲音源可能存在段落差异，以游戏实际 cue 为准。
 
-英语和简体中文为项目自译；法语、西班牙语、韩语为本项目 AI 翻译，参考用户提供的游戏日语原文及既有项目译文。没有标注为萌娘百科或 Vocaloid Wiki 的转载译文。各文件保留译者说明与权利信息。
+既有英语和简体中文为项目自译；本轮新增五语言译文及既有法语、西班牙语、韩语为本项目 AI 翻译，依据用户提供的游戏日语原文制作。没有标注为萌娘百科或 Vocaloid Wiki 的转载译文。各文件保留译者说明与权利信息。
 
 在主菜单资源包导入页可导入 `formatVersion: 1` 的字幕 JSON，也支持曲包中的 `<song.id>.lyrics.<language>.json`。语言代码为 `en`、`zh`／`zh-Hans`、`fr`、`es`、`ko`；导入文件优先于曲包和内置译文。格式、来源与覆盖清单见 [歌词翻译说明](Docs/LyricTranslations.md)。
 
@@ -151,7 +162,8 @@ USM 包含视频、音轨、谱面和歌词；PNG 包含封面与标题图集；
 - `InterfacePreferences.swift`：语言、UI 文案、字体策略、播放顺序、评级及字幕校验。
 - `UTFTable.swift`：读取 USM 的 CRI UTF 表。
 - `NativeMedia.mm`：ZIP／RAR 解压和设备内媒体转换。
-- `PackStore.swift`：SHA-1 校验、事务安装和歌曲注册。
+- `PackStore.swift`：文件夹／ZIP／RAR 导入、SHA-1 校验、事务安装和歌曲注册。
+- `PackDownloads.swift`：HTTPS／GitHub Release 下载列表、进度速度、暂停恢复与自动安装队列。
 - `Tools/import_ipa.py`：离线导出 IPA 的图集、CAF、谱面和双音轨 MP4，需要 Python 3、Pillow、ffmpeg。
 - `Tools/verify_assets.py`：11 首基础歌曲的资源验证，需要 ffprobe。
 - `Tests`：实际 Swift 解析、规则、界面基础逻辑和五语言字幕覆盖；命令见 [测试说明](Tests/README.md)。

@@ -1,3 +1,42 @@
+# 1.1.6 build 11 — DLC import, downloads and lyrics
+
+2026-10-06, Xcode 27.2 beta 2; actual iPhone Duo simulator (iOS 27.1). Bundle ID `com.sbga.MikuFlick02`, version `1.1.6`, build `11`.
+
+## Actual folder import and media validation
+
+The user-supplied InstallData contains 20 Mov directories: 1–15, 17, 96, 97, 98 and 99. A temporary Debug harness called the real `PackStore.importFolder` inside the Duo application, waiting for each native conversion and transaction to finish. All 20 imports finished without error, adding 60 DLC songs to the 11 built-ins (71 total). No host-side import script substituted for the app importer.
+
+Read-only inspection of all 60 converted DLC files confirmed one H.264 video stream, two AAC audio streams, original 320×480 dimensions, plausible duration, and nonempty parsed chart events. Results are included in `DLC-Download-QA.zip`: `import-events.txt`, `dlc-import-qa.json` and `import-media-verification.json`.
+
+## Actual concurrent GitHub downloads
+
+The app resolved the official sound-pack Release, then started `Mov_1.zip`, `Mov_98.rar` and an intentionally missing ZIP. Mov_1 was paused and resumed. Runtime logs show both valid files downloading simultaneously with independent positive byte rates; Mov_98 installed while Mov_1 continued downloading, and Mov_1 then queued and installed. The missing URL ended in a failed state rather than being imported.
+
+| Download | Bytes | SHA-256 | Final state |
+|---|---:|---|---|
+| Mov_1.zip | 254158764 | `17eeefe79ee2fe3d87936f7091bf54bf86762dc11719d6c97d7f1a2c096b6d9b` | installed |
+| Mov_98.rar | 286179146 | `8f9c6af7de55c6480b550fe4e86bc80f5a6fba077019e00abc267ddcdb297d5f` | installed |
+
+Downloaded bytes and SHA-256 match the GitHub asset metadata. Import operations are serialized through the app's real native installer. Final UI collapses the available-assets section to keep current tasks visible. The official repository now filters this section to Mov ZIP/RAR files, excluding thumbnail/Jailbreak helper archives; other Release pages accept ZIP/RAR assets.
+
+Downloads use HTTPS with system transport security. Files are selected through the system document/folder picker; Files integration exposes the app's own Documents directory. This is not a full-device filesystem permission. Task history and downloaded archives remain local. The current default URLSession supports foreground download work; continued background/terminated-app transfer is not claimed, and resumption depends on server support.
+
+## One batch of lyric checks
+
+User requested direct write-in rather than per-song tests. All 71 songs are present in the authoritative game-cue fixture. `SubtitleAssetsTests.swift` passed once after completion: 2008 nonempty cue translations per language (en/zh/fr/es/ko), 355 files and 10,040 translations total. Metadata, source-key coverage, normalized lookup and original-only Japanese behavior passed. Translations are project translations/AI translations with provenance retained; completeness checks do not replace linguistic review.
+
+Mov_16 was not in the supplied directory and its three songs are not claimed as translated. All temporary Debug import/download harnesses and local source paths are removed from the final application. No individual playback or manual full-song test is claimed for these 71 lyrics.
+
+`DownloadTests.swift` passed URL conversion/validation, GitHub Release paths and slash-containing tags, unknown-size progress, percentage bounds and task-history round trips. `InterfaceTests.swift` passed ten groups, including 196 six-language strings and English difficulty/judgment/FAST/LATE in every UI language. Native Duo Debug run verified the download page; final device Archive succeeded at 21:23 (1.1.6 build 11, arm64 iOS App Archive). The source project's normal automatic-signing configuration is restored after the unsigned release build.
+
+## Delivery boundary
+
+IPA validation requires exactly 11 built-in MP4s and their source-matching movie/chart/preview/cover/title resources, all 355 subtitle files, iPhoneOS arm64 platform, build 11 and unsigned status. No original USM/ADX, DLC ZIP/RAR, Mov/Thum directory or imported DLC movie is included. Payload and full ZIP CRC are checked. Final size and digest are in `IPA-VALIDATION.json` and `SHA256SUMS.txt`.
+
+This round does not repeat all iPad/iPhone/Air layouts, physical-device signing/installation, all 71 songs' touch/audio behavior, or linguistic review. Earlier startup audio, three-device layout and ProMotion records follow for context.
+
+---
+
 # 1.1.6 build 10 — startup audio order
 
 The first-run tutorial's `onAppear` requested BGM03 before the home screen requested the title announcement. The previous gate only started on the home screen, allowing tutorial music to play early.
@@ -26,7 +65,7 @@ IPA: 421405375 bytes; SHA-256 `9707e22fa59291e8ade2e5c734b8e4adf60c7b23f72805d75
 
 初次验证：2026-10-04；补充验证：2026-10-05，Asia/Shanghai。
 
-> 最新版本为 1.1.6（build 8），验收范围以文末 build 7 性能工具与 build 8 ProMotion 检查为准。以下按时间保留历史记录：旧版三秒转场、英／中两种译文（34 条字幕轨）、三语言帮助，以及上轮交接后停止适配测试的描述，均已被 r2 的实现或后续检查覆盖。r2 转场为一秒，设置子菜单进入、返回都不转场；六种界面语言、85 条字幕轨已完成静态校验。设备实屏检查仍是布局冒烟，不能等同于八种形态全部完成打歌验收。
+> 最新版本为 1.1.6（build 11），当前验收范围以本文开头的下载／导入和字幕批量检查为准。以下按时间保留历史记录：旧版三秒转场、英／中两种译文（34 条字幕轨）、三语言帮助，以及上轮交接后停止适配测试的描述，均已被 r2 的实现或后续检查覆盖。r2 转场为一秒，设置子菜单进入、返回都不转场；六种界面语言、85 条字幕轨已完成静态校验。设备实屏检查仍是布局冒烟，不能等同于八种形态全部完成打歌验收。
 
 ## 环境与构建
 
