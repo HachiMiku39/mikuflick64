@@ -78,9 +78,13 @@ python3 Tools/verify_assets.py
 - 五种译文语言各 71 首、2008 句的 MV 双行字幕、横屏侧栏、进度拖动和字幕同步；日语只显示原文。
 - 移除随机选曲及 Shuffle 后的播放列表／循环；版权安全位置、Duo 外屏暂停面板，以及类 3DS 模式更大的 MV 区域、左下竖向计量条和下方分数／连击／暂停。
 
-用户提供的 Mov_99.zip 在此前 iPad 会话中完整安装，曲目元数据、谱面和双音轨通过检查；本轮没有据此宣称全部设备的安装重新验证通过。RAR4／RAR5 提取有本机样本测试记录，build 11 已在 Duo 模拟器实际下载并完整导入 Mov_98.rar，媒体检查通过。物理设备尚未验证。
+用户提供的 Mov_99.zip 在此前 iPad 会话中完整安装，曲目元数据、谱面和双音轨通过检查；本轮没有据此宣称全部设备的安装重新验证通过。RAR4／RAR5 提取有本机样本测试记录，build 11 已在 Duo 模拟器实际下载并完整导入 Mov_98.rar，媒体检查通过。build 12 在物理 iPad Pro 11-inch (M4) 上验证 Mov_1 ZIP 下载后的完整安装；其他曲包和设备未因此标为真机通过。
 
-交付物包含 build 11 源码和未签名的 arm64 iPhoneOS IPA；IPA 需要自行签名后安装。额外曲包影片保存在具体模拟器的应用沙盒中，不随源码包复制。完整交接内容见工程根目录 `HANDOFF.md`。
+交付物包含 build 12 源码和未签名的 arm64 iPhoneOS IPA；IPA 需要自行签名后安装。额外曲包影片保存在具体模拟器的应用沙盒中，不随源码包复制。完整交接内容见工程根目录 `HANDOFF.md`。
 
 
 `DownloadTests.swift` 覆盖 HTTPS ZIP/RAR 直链、GitHub blob 直链转换、发布页和包含斜杠的 tag、非法协议／页面路径、未知文件大小、百分比边界与任务记录编解码。实际 Duo 并行下载、暂停续传、404、ZIP/RAR 自动串行导入记录见 `VALIDATION.md`；不使用模拟下载代替运行验证。
+
+## 真机解压路径回归（build 12）
+
+运行 `python3 Tests/ArchiveTests.py`。脚本直接编译交付的 `MFExtractArchive` 函数并使用真实 ZIP 文件，检查目录别名、末尾斜杠、嵌套 Mov/Thum 目录，以及绝对路径、../、反斜杠越界、归档符号链接和已存在的符号链接拒绝。它使用 macOS libarchive，不能替代物理 iOS 导入；物理 Mov_1 安装结果见 VALIDATION.md。

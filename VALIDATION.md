@@ -1,3 +1,20 @@
+# 1.1.6 build 12 — physical iOS archive-path fix
+
+## Physical iPad verification (2026-10-06)
+
+- iPad Pro 11-inch (M4), iPadOS 27.2, Xcode developer-signed Debug app with bundle ID `com.sbga.MikuFlick02`.
+- Real GitHub download of `Mov_1.zip` reproduced the original failure at **Extract**, before verification or media conversion. Diagnostics showed the same staging directory represented as `/var/mobile/...` for the root and `/private/var/mobile/.../Mov_1` for the entry; the old string-prefix test rejected it.
+- The shipping extractor now resolves both paths consistently. It still rejects traversal, absolute paths, archived links, and pre-existing links inside the extraction tree.
+- Retried the already-downloaded ZIP through the real `PackDownloads` → `PackStore` pipeline. All three songs converted and committed successfully; the completion log reported **songs=14** (11 built-in + 3 imported). Reimport also exercised replacing existing folders.
+- The temporary Debug startup retry was removed before the release archive. No simulator-only substitute or shortened media fixture was used for the physical import.
+- `ArchiveTests.py` passed the actual shipping extractor against aliased/trailing-slash roots, nested packs and unsafe path/link fixtures. `DownloadTests.swift` passed URL validation, progress bounds and history serialization.
+- Final unsigned device Archive succeeded at 22:14:48, version 1.1.6 build 12, arm64 iPhoneOS. Normal source-project automatic signing restored after archive.
+- SHA-1 verification now reads 256 KiB chunks; import errors preserve the stage, file and underlying NSError chain.
+
+This physical check covers Mov_1 ZIP installation on this iPad. It does not establish physical RAR playback, every DLC, every device layout, or user-side IPA re-signing. Prior simulator RAR/ZIP results are retained below. The release IPA is an unsigned arm64 iPhoneOS build 12 with exactly 11 built-in songs and all 355 translation files; imported DLC media remains only in device application data.
+
+---
+
 # 1.1.6 build 11 — DLC import, downloads and lyrics
 
 2026-10-06, Xcode 27.2 beta 2; actual iPhone Duo simulator (iOS 27.1). Bundle ID `com.sbga.MikuFlick02`, version `1.1.6`, build `11`.

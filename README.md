@@ -2,18 +2,25 @@
 
 在 64 位 iPhone 和 iPad 上重现 Miku Flick 02 的假名滑动音游与 MV 播放。沿用原版谱面、影片、图片和提示音，提供原版风格的 Legacy 界面及两套现代界面，并加入多语言字幕、进度拖动和直接导入资源包。
 
-当前发布为 **v1.1.6（build 11）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 71 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。IPA 完整内置 11 首基础歌曲；额外 60 首 DLC 的影音不随包发布，导入对应曲包后自动显示译文。
+当前发布为 **v1.1.6（build 12）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 71 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。IPA 完整内置 11 首基础歌曲；额外 60 首 DLC 的影音不随包发布，导入对应曲包后自动显示译文。
+
+## build 12：真机曲包导入修复（2026-10-06）
+
+- 修复 iOS 真机把同一沙盒目录表示为 `/var/...` 与 `/private/var/...` 时，解压校验误报越界的问题。先统一解析路径，再校验文件位置；保留越界和符号链接拦截。
+- 安装失败显示处理阶段、文件名和具体原因；SHA-1 校验采用分块读取，避免一次加载整首 USM。
+- 已在 iPad Pro 11-inch (M4) 真机复现 GitHub `Mov_1.zip` 的失败，并验证修复后完整导入三首歌曲、曲库共 14 首。更新后可对下载列表中的失败任务点“Resume / retry”，复用已下载文件。
+- IPA 仍仅含 11 首基础歌曲、71 首五语言译文，不包含额外 DLC 影音。普通下载、ZIP/RAR 共用此路径修复；本轮真机完整安装验证范围为 Mov_1 ZIP，未扩大为所有曲包验收。
 
 ## 下载与运行
 
-[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r5)。请选择适合你的文件：
+[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r6)。请选择适合你的文件：
 
 | 下载 | 用途 |
 |---|---|
-| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/MikuFlick64-1.1.6-build11-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
-| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
-| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
-| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r5/SHA256SUMS.txt) | 核对下载文件是否完整。 |
+| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r6/MikuFlick64-1.1.6-build12-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
+| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r6/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
+| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r6/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
+| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r6/SHA256SUMS.txt) | 核对下载文件是否完整。 |
 
 **系统要求：**iOS／iPadOS 17.0 或更高版本、arm64 设备。iPhone Duo 的专用折叠形态适配需要 iOS 27.1 或更高版本；真机折叠切换尚未测试。
 
