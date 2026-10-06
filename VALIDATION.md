@@ -2,7 +2,7 @@
 
 初次验证：2026-10-04；补充验证：2026-10-05，Asia/Shanghai。
 
-> 最新版本为 1.1.6（build 6），验收范围以文末「build 6 本轮检查」为准。以下按时间保留历史记录：旧版三秒转场、英／中两种译文（34 条字幕轨）、三语言帮助，以及上轮交接后停止适配测试的描述，均已被 r2 的实现或后续检查覆盖。r2 转场为一秒，设置子菜单进入、返回都不转场；六种界面语言、85 条字幕轨已完成静态校验。设备实屏检查仍是布局冒烟，不能等同于八种形态全部完成打歌验收。
+> 最新版本为 1.1.6（build 8），验收范围以文末 build 7 性能工具与 build 8 ProMotion 检查为准。以下按时间保留历史记录：旧版三秒转场、英／中两种译文（34 条字幕轨）、三语言帮助，以及上轮交接后停止适配测试的描述，均已被 r2 的实现或后续检查覆盖。r2 转场为一秒，设置子菜单进入、返回都不转场；六种界面语言、85 条字幕轨已完成静态校验。设备实屏检查仍是布局冒烟，不能等同于八种形态全部完成打歌验收。
 
 ## 环境与构建
 
@@ -192,3 +192,56 @@ Legacy 专用条件同时检查选择样式与间奏状态，SEKAI-A／B 保持�
 目标包名 jp.sbga.mikuflick，版本 1.1.6（6），最低 iOS／iPadOS 17.0。发布 IPA 为未签名的 arm64 iPhoneOS 构建，需要用户自行签名；模拟器检查不等于签名后真机安装、硬件触摸／音频延迟、真实折叠或全部歌曲真人通关验收。最终归档和压缩校验见随发布交付的 IPA-VALIDATION.json。
 
 最终 Xcode 真机 Release Archive 成功（build 6），临时禁签设置已恢复。IPA 校验确认 arm64／iOS platform 2／iphoneos、包名 jp.sbga.mikuflick、版本 1.1.6（6）、最低系统 17.0、11 首完整内置曲、85 条字幕轨／2395 条译文、8 张原版轨道字图及 OCR-A。源码资源逐文件 SHA-256 匹配，Payload 和 ZIP CRC 通过；无签名或 provisioning profile。
+
+
+## 2026-10-06 build 7 性能悬浮窗检查
+
+### 逻辑与构建
+
+- `PerformanceTests.swift`：真实进程 CPU 时间和非零 physical footprint；25% 单核心、200% 多核心；60／10 Hz 显示回调；缺失与无效样本、回退 CPU 时间、后台恢复重新建立基线，全部通过。CPU 没有截断到 100%；读取失败显示 —。
+- `InterfaceTests.swift`：174 项动态文本六语言覆盖及格式校验通过，难度／判定／FAST／LATE 英文策略保持通过。
+- Xcode 27.2 beta 2 原生构建成功，分别安装、运行于独立的 iPhone Air（27.2）、iPad Pro（27.2）、iPhone Duo（27.1）模拟器。新功能没有改变评分、谱面、影片、键盘或 gauge 布局。
+
+### 实屏检查
+
+- Air：性能开关默认关闭；打开后 CPU、RAM、UI FPS 持续更新。标题可收起、展开，× 可关闭，窗外的返回键／选项／PLAY 可正常操作。进入全屏游戏、暂停和返回选曲时仍保留性能窗；最高分仍为 0。进入系统主页后窗消失，重新进入应用恢复显示。关闭 Developer 后性能窗消失、Developer 入口隐藏。Apple Metal HUD 开关开启并重新启动后保持开启；当前 SwiftUI 页面没有出现官方图形 HUD，不能声称读取 GPU 成功。
+- iPad：Developer 页面横／竖屏实际旋转检查，性能窗保持固定字号，所有数值、关闭按钮和图例完整落在窗口安全区内。
+- Duo：外屏横／竖、展开横／竖、Book 横屏切换检查，性能窗适应窗口可用区域，避让系统状态／返回侧栏，固定字号不随主页面整体缩放。Developer 表单较短时可滚动。
+- 本轮自动拖动没有产生有效位移，观测到手势起止而平移量为零；因此未将拖动实测标为通过。源码使用标准 UIKit pan，真机触摸拖动、长时间采样与折叠旋转后的拖动位置仍需人工验证。
+
+截图随本地交付保存：`air-performance-game.png`、`ipad-performance-portrait.png`／`landscape.png`、`duo-performance-closed-portrait.png`／`landscape.png`、`duo-performance-open-portrait.png`／`landscape.png`、`duo-performance-book.png`。
+
+### 数据含义与限制
+
+CPU 为本应用进程的用户＋系统时间增量，100% 是一个核心；RAM 是进程 physical footprint。模拟器数值不能代表真机性能或耗电。UI FPS 为 CADisplayLink 回调频率，不是影片帧率、Metal GPU 渲染完成率，也不是系统全局 FPS。
+
+Apple 官方 HUD 接入仅使用公开的 UserDefaults `MetalHUDForceEnabled` 与 `CAMetalLayer.developerHUDProperties`，改变开关后重启生效；需要支持的 Metal 表面与运行环境。本应用不使用私有 GPU 计数器，不生成无关的 Metal 工作负载来让 HUD 出现，不把 GPU 耗时估算成占用百分比。GPU 百分比明确为 —；详细分析使用 Xcode Instruments → Metal System Trace。全部性能采样只留在本机。
+
+此次保留 1.1.6 与 `jp.sbga.mikuflick`，构建号为 7；11 首免费歌曲、六语言和原版假名字图保持完整。
+
+原生 Release 设备归档成功（2026-10-06 16:37）；已导出 build 7 未签名 IPA。打包校验通过 iPhoneOS arm64、1.1.6／build 7／jp.sbga.mikuflick、完整 11 首影片／谱面／预听／封面／Logo 的源文件 SHA-256、85 份字幕、8 张原版假名字图、OCR-A、六语言及 ZIP CRC。IPA 为 420,532,054 bytes，SHA-256 `b90a345c5e820b6ad5c89f2d1b1dcbd252a721b6331a1ebd6f8d10e48d607779`。真机签名安装未验证。
+
+## build 8 ProMotion 检查（2026-10-06）
+
+- Info.plist：`CADisableMinimumFrameDurationOnPhone=true`；版本 1.1.6、build 8、Bundle ID `jp.sbga.mikuflick`。
+- 播放更新使用 CADisplayLink + 当前窗口屏幕能力；最高请求 120 Hz，60 Hz 屏幕不请求超过能力的刷新率。HUD 使用自适应范围，菜单不固定请求 120。
+- 每帧读取 AVPlayer.currentTime；原版 30 Hz 判定与影片帧率保持原样；暂停、进度拖动、退出及失去前台时停止显示更新，恢复重新配置。
+- PerformanceTests：120／60／10 Hz、120→60 的动态回调样本、设备 60／120／240 Hz 的上限策略、CPU／RAM 采样及后台重置 PASS。RulesTests：31 个判定边界及原版规则 PASS。
+- 真机 120 Hz、低电量及温控降频尚未验证；模拟器仅验证可构建与运行行为，不作为真机 120 FPS 证明。
+
+### build 8 实际模拟器回归
+
+- 三台模拟器均经 Xcode 原生编译／安装／启动：iPhone Air iOS 27.2、iPad Pro iPadOS 27.2、iPhone Duo iOS 27.1。构建 app 的 Info.plist 实测 build 8 与高刷新开关 true。
+- Air：游戏推进；暂停后分数 9600、时钟 00:25 保持，恢复继续推进；Home 进入后台，再打开应用仍为 PAUSED，返回选曲正常。
+- iPad：自动打歌、间奏与原版特效显示；00:40 暂停，旋转后保持暂停，再恢复推进到 00:44。性能悬浮窗仍在安全区内，显示回调通常约 58–60 FPS；不等于渲染 FPS 或真机 120 Hz。
+- Duo：播放中折叠／展开／Book 切换继续推进；稳定后的 Book 画面中，视频、轨道、键盘、gauge 与小型悬浮窗正常显示。立即旋转抓取的中间帧不作为布局通过证据。
+- Duo 完整《恋は戦争》NORMAL 自动打歌：83 COOL、MAX COMBO 83、15 间奏，Stage score 24954、Combo bonus 17600、TOTAL SCORE 42554、Perfect!；标记 Test result · not saved，返回选歌 HIGH SCORE 仍为 0。
+- 本轮未重新宣称所有八种形态完成手动全曲验收，也未验证真机签名安装、GPU 占用和稳定 120 Hz。
+
+### build 8 交付包
+
+Xcode 原生 Archive（2026-10-06 16:56）生成 arm64 iPhoneOS，未签名；11 首免费歌曲的影片／谱面／预听／封面／Logo 逐文件 SHA-256 与源码一致。85 个字幕文件、2395 条译文、OCR-A、8 张原假名字图及 IPA ZIP CRC 校验通过。
+
+`MikuFlick64-1.1.6-build8-unsigned.ipa`：420534180 bytes，SHA-256 `84ea23947a56b62c2069e591b2f219e2291d1d51b35d657216b805b0d5bcf380`。包名 `jp.sbga.mikuflick`，版本 1.1.6、build 8；`CADisableMinimumFrameDurationOnPhone=true`。build 7 为本轮追加 ProMotion 前的中间构建，未发布为新 Release。
+
+- Duo MV：媒体与双行字幕推进至 01:42，暂停显示 Continue；恢复后进度继续至 01:48／01:50。原影片 02:37，不随 UI 请求刷新率改变。原生自动化的 AX 数值修改没有触发拖动手势，未将进度 seek 标记为已通过；手势 seek 仍需真机补测。
