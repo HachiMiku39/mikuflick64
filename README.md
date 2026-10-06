@@ -2,18 +2,18 @@
 
 在 64 位 iPhone 和 iPad 上重现 Miku Flick 02 的假名滑动音游与 MV 播放。沿用原版谱面、影片、图片和提示音，提供原版风格的 Legacy 界面及两套现代界面，并加入多语言字幕、进度拖动和直接导入资源包。
 
-当前发布为 **v1.1.6（build 6）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 17 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。工程内置 11 首基础歌曲，另外六首的影片需要导入 Mov_11／Mov_99 资源包。
+当前发布为 **v1.1.6（build 8）测试版**。界面支持英语、日语、简体中文、法语、西班牙语和韩语；字幕覆盖 17 首歌曲的英语、简体中文、法语、西班牙语和韩语五种译文。工程内置 11 首基础歌曲，另外六首的影片需要导入 Mov_11／Mov_99 资源包。
 
 ## 下载与运行
 
-[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r2)。请选择适合你的文件：
+[打开 1.1.6 测试版发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r3)。请选择适合你的文件：
 
 | 下载 | 用途 |
 |---|---|
-| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r2/MikuFlick64-1.1.6-build6-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
-| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r2/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
-| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r2/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
-| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r2/SHA256SUMS.txt) | 核对下载文件是否完整。 |
+| [未签名真机 IPA](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/MikuFlick64-1.1.6-build8-unsigned.ipa) | 64 位 iPhone／iPad，需自行签名后安装。 |
+| [可编辑源码工程](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/MikuFlick64-Source.zip) | 在 Xcode 中编译、修改或使用自己的开发团队运行到真机。 |
+| [IPA 校验结果](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/IPA-VALIDATION.json) | 平台、版本、资源和压缩完整性检查。 |
+| [SHA-256 校验清单](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r3/SHA256SUMS.txt) | 核对下载文件是否完整。 |
 
 **系统要求：**iOS／iPadOS 17.0 或更高版本、arm64 设备。iPhone Duo 的专用折叠形态适配需要 iOS 27.1 或更高版本；真机折叠切换尚未测试。
 
@@ -22,6 +22,19 @@
 **从源码运行：**解压工程，用 Xcode 打开 `MikuFlick64.xcodeproj`，选择 `MikuFlick64` Scheme 和目标设备后按 ⌘R。本轮使用 Xcode 27.2 beta 2（27B5028f）构建；真机运行需在 Signing 中选择自己的开发团队，模拟器无需开发者账号。
 
 已完成本轮模拟器布局冒烟检查；全曲手动通关、真实设备触摸与音频表现仍需人工验证。已执行项目与待测范围见 [验证记录](VALIDATION.md)，人工测试事项见 [交接说明](HANDOFF.md)。
+
+## build 8：ProMotion 与 Developer 性能工具（2026-10-06）
+
+支持 ProMotion 最高 120 Hz：iPhone 开启 `CADisableMinimumFrameDurationOnPhone`；游戏与 MV 的画面更新改用 `CADisplayLink`，根据当前屏幕能力请求最高不超过 120 Hz。60 Hz 设备保留 60 Hz 上限。系统仍可因低电量、温度及用户设置降低刷新率；暂停、拖动进度及后台停止播放更新，恢复时重新申请。
+
+轨道、键盘、特效按媒体时钟更新；原版 30 Hz 判定规则及原影片帧率保持不变。性能悬浮窗允许系统自适应刷新，不会在菜单强制持续 120 Hz。已在三台模拟器编译和冒烟检查；模拟器读数不能证明真机稳定 120 FPS，真机 ProMotion 及低电量切换仍需实测。Apple 文档：[ProMotion 适配](https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays)。
+
+`OPTIONS → DISPLAY → Developer` 开启后，在 `DEVELOPER` 子页打开 **Performance overlay**。悬浮窗显示本应用 CPU、RAM 与 UI FPS，每秒刷新；可拖动、点击标题收起，或用 × 关闭。页面切换和全屏游戏保留悬浮窗，窗口外的触摸继续传递给游戏。背景停止采样，回到前台重新建立基线；关闭 Developer 会同时关闭 Autoplay 和性能工具。
+
+- CPU 为本应用进程的用户与系统 CPU 时间增量：100% 表示一个核心，多核心工作可能超过 100%。RAM 为应用的 physical footprint，单位 MiB（界面显示 MB）。模拟器数据属于模拟器进程，不能作为真机耗电或性能结论。
+- **UI FPS** 是 `CADisplayLink` 回调频率，不是影片帧率，也不能代替 GPU 实际完成渲染的 FPS。
+- **Apple Metal HUD** 使用 Apple 公开的 `MetalHUDForceEnabled` 与 `CAMetalLayer.developerHUDProperties`。改变后重启应用；支持的 Metal 表面可显示 GPU 耗时、图形内存和渲染 FPS。当前 SwiftUI／AVPlayer 页面可能不暴露 Metal 表面，因此不保证官方 HUD 出现。本应用没有可公开读取的完整 GPU 占用百分比，悬浮窗明确显示 `GPU —`。详细 GPU 分析请用 Xcode Instruments 的 Metal System Trace。
+- 官方说明：[Metal Performance HUD](https://developer.apple.com/documentation/xcode/monitoring-your-metal-apps-graphics-performance)。这两个工具默认关闭，采样仅留在本机，不上传性能数据。
 
 ## build 6：Developer、原版特效与布局（2026-10-06）
 
