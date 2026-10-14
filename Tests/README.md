@@ -88,3 +88,14 @@ python3 Tools/verify_assets.py
 ## 真机解压路径回归（build 12）
 
 运行 `python3 Tests/ArchiveTests.py`。脚本直接编译交付的 `MFExtractArchive` 函数并使用真实 ZIP 文件，检查目录别名、末尾斜杠、嵌套 Mov/Thum 目录，以及绝对路径、../、反斜杠越界、归档符号链接和已存在的符号链接拒绝。它使用 macOS libarchive，不能替代物理 iOS 导入；物理 Mov_1 安装结果见 VALIDATION.md。
+
+
+## Mac 画布与 DMG（build 13）
+
+```sh
+swiftc -module-cache-path /tmp/miku-module-cache \
+  InterfacePreferences.swift MacDisplay.swift Tests/MacDisplayTests.swift -o /tmp/miku-mac-tests
+/tmp/miku-mac-tests
+```
+
+覆盖 72 个窗口尺寸、4:3 / 3:4 比例、无裁切、无效尺寸、保存的模式与六语言标签；原生运行和最终 DMG 的校验记录见 Docs/MacSupport.md。

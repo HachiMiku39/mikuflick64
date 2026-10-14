@@ -325,3 +325,14 @@ Xcode 原生 Archive（2026-10-06 16:56）生成 arm64 iPhoneOS，未签名；11
 `MikuFlick64-1.1.6-build8-unsigned.ipa`：420534180 bytes，SHA-256 `84ea23947a56b62c2069e591b2f219e2291d1d51b35d657216b805b0d5bcf380`。包名 `jp.sbga.mikuflick`，版本 1.1.6、build 8；`CADisableMinimumFrameDurationOnPhone=true`。build 7 为本轮追加 ProMotion 前的中间构建，未发布为新 Release。
 
 - Duo MV：媒体与双行字幕推进至 01:42，暂停显示 Continue；恢复后进度继续至 01:48／01:50。原影片 02:37，不随 UI 请求刷新率改变。原生自动化的 AX 数值修改没有触发拖动手势，未将进度 seek 标记为已通过；手势 seek 仍需真机补测。
+
+
+## build 13 macOS 正式交付（2026-10-15）
+
+Xcode 27.2 beta 2 produced native arm64 iPhoneOS and Mac Catalyst Release builds. Mac tests ran on macOS 27.2 / Apple silicon. Both canvas modes were checked on home, options, selection, gameplay and pause. Switching during active playback kept progress; switching during pause kept the same score/time. NORMAL 《恋は戦争》 autoplay completed: 83 COOL, 83 MAX COMBO, 15 interludes, score 42554 (24954 + 17600), Perfect. Autoplay result was not saved; HIGH SCORE remained 0. Final ad hoc sandbox bundle launched, and the DMG-contained app launched after a restart with the selected canvas retained.
+
+MacDisplayTests checks 72 window dimensions, aspect ratios, bounds, invalid windows, saved-state fallback and six-language labels. RulesTests and InterfaceTests passed. DMG packaging checks arm64 / platform 6, version, all 1044 resource hashes, 11 built-in movies, 355 subtitle tracks, app-sandbox/file/network entitlements, signature and disk-image integrity.
+
+This is not complete Mac pack-install/download, every-song manual gameplay, Bluetooth/USB controller, sustained 120 Hz, hardware audio latency or every macOS version certification. Minimum deployment version 14.0 is a build setting, not a record of running on macOS 14. No Intel build was produced. iOS build 13 was compiled and packaged, but was not newly installed/tested on physical iOS devices this round.
+
+详情及构建方式见 [MacSupport](Docs/MacSupport.md)。

@@ -1,14 +1,14 @@
 # 测试与交付说明
 
-2026-10-06，v1.1.6（build 12）测试版。当前新增并行曲包下载、文件夹导入和 71 首五语言字幕；保留三张开屏和标题语音优先播放；历史版本新增 Developer 自动打歌、原版判定多边形与连击特效，修正 gauge 比例、主页及音量对齐；Legacy 间奏隐藏 gauge 并居中 TAP。普通 iPhone 固定竖屏，Duo 外屏及 iPad 保留横屏。三台模拟器测试和限制详见 [验证记录](VALIDATION.md)。
+2026-10-15，v1.1.6（build 13）正式交付。新增 Apple Silicon Mac Catalyst 应用及 DMG；横竖屏按钮、运行状态保留和验证限制见 [MacSupport](Docs/MacSupport.md)。当前新增并行曲包下载、文件夹导入和 71 首五语言字幕；保留三张开屏和标题语音优先播放；历史版本新增 Developer 自动打歌、原版判定多边形与连击特效，修正 gauge 比例、主页及音量对齐；Legacy 间奏隐藏 gauge 并居中 TAP。普通 iPhone 固定竖屏，Duo 外屏及 iPad 保留横屏。三台模拟器测试和限制详见 [验证记录](VALIDATION.md)。
 
 ## 下载与运行
 
-[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r6)提供以下文件：
+[1.1.6 发布页](https://github.com/HachiMiku39/mikuflick64/releases/tag/mikuflick64-v1.1.6-r7)提供以下文件：
 
-- [MikuFlick64-1.1.6-build12-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r6/MikuFlick64-1.1.6-build12-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
-- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r6/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
-- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r6/SHA256SUMS.txt)：下载文件校验清单。
+- [MikuFlick64-1.1.6-build13-unsigned.ipa](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r7/MikuFlick64-1.1.6-build13-unsigned.ipa)：用于真实 64 位 iPhone／iPad，需用自己的账号或证书自行签名再安装。
+- [MikuFlick64-Source.zip](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r7/MikuFlick64-Source.zip)：可编辑的 Xcode 源码工程。
+- [SHA256SUMS.txt](https://github.com/HachiMiku39/mikuflick64/releases/download/mikuflick64-v1.1.6-r7/SHA256SUMS.txt)：下载文件校验清单。
 
 真机 IPA 的系统要求为 iOS／iPadOS 17.0 或更高版本、arm64。iPhone Duo 的专用折叠形态 API 要求 iOS 27.1 或更高版本，真机折叠切换尚未测试。
 
@@ -16,7 +16,11 @@
 
 IPA 是未签名的设备构建，需自行签名。本轮使用 Xcode 开发签名在 iPad Pro 11-inch (M4) 真机验证 Mov_1 ZIP 下载后的完整安装；没有据此宣称用户侧重签名、全部曲包或所有触摸／音频表现均已验收。从源码运行到真机需在 Xcode Signing 选择自己的开发团队。此前交付包保留供对照。
 
-## build 12 本轮修复
+## build 13 Mac 交付
+
+Mac 包要求 macOS 14+ / Apple Silicon，ad hoc 签名，未公证；DMG 可拖入 Applications。Mac 横竖屏与全曲自动演奏通过，本轮 iOS 未重新真机运行。IPA 未签名；不包含额外 DLC 影音。
+
+## build 12 历史修复
 
 真机解压路径统一解析 `/var` 与 `/private/var` 别名，修正正常曲包被误判越界。失败提示保留阶段、文件与 NSError 原因，SHA-1 校验使用分块读取。物理 iPad 上 Mov_1.zip 修复后安装三首歌曲，曲库 14 首。路径回归覆盖根目录别名／斜杠、嵌套目录、绝对／越界路径及符号链接。临时自动重试诊断入口已移除，发布包不带 DLC 影音。
 
@@ -73,7 +77,7 @@ RAR4／RAR5 原生提取此前通过本机样本测试；build 11 在 Duo 模拟
 
 Developer 默认关闭。开启路径：OPTIONS → DISPLAY → Developer，再返回 OPTIONS → DEVELOPER → Autoplay。测试成绩不保存。原版判定图形开关位于 DISPLAY，会禁用 FAST／LATE 的显示。
 
-本地 IPA：`../MikuFlick64-1.1.6-r5/MikuFlick64-1.1.6-build12-unsigned.ipa`。
+本地 IPA：`../MikuFlick64-1.1.6-r5/MikuFlick64-1.1.6-build13-unsigned.ipa`。
 
 
 ## build 8 性能工具
